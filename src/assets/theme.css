@@ -1,0 +1,35 @@
+/* src/styles/theme.css  (load this first, e.g. in index.tsx) */
+:root{
+  /* light defaults */
+  --bg-color: #ffffff;
+  --text-color: #232323;
+  --border-color: #e0e0e0;
+  --search-bg: #f5f5f5;
+  --hover-bg: rgba(0,0,0,0.05);
+  --ui-bg: rgba(0,0,0,0.03);
+  --accent-red: #E73827;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"]{
+  --bg-color: #1a1a1a;
+  --text-color: #ffffff;
+  --border-color: #333333;
+  --search-bg: #2a2a2a;
+  --hover-bg: rgba(255,255,255,0.05);
+  --ui-bg: rgba(255,255,255,0.03);
+  --accent-red: #E73827;
+  color-scheme: dark;
+}
+
+/* Example usage (NavigationBar.css) */
+.navigation-bar{
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border-bottom: 2px solid var(--accent-red);
+}
+.search-input{
+  background: var(--search-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
