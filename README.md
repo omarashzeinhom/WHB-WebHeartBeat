@@ -159,13 +159,47 @@ We're planning to implement these cloud save options:
 [package]
 name = "webheartbeat"
 version = "0.1.0"
+description = "A Tauri App"
+authors = ["you"]
 edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "webheartbeat_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
 
 [dependencies]
 tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 headless_chrome = "0.9.0"
+base64 = "0.13.0"
+# For async operations
+tokio = { version = "1.0", features = ["full"] }
+# For date/time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+[profile.dev]
+incremental = true # Compile your binary in smaller steps.
+
+[profile.release]
+codegen-units = 1 # Allows LLVM to perform better optimization.
+lto = true # Enables link-time-optimizations.
+opt-level = "s" # Prioritizes small binary size. Use `3` if you prefer speed.
+panic = "abort" # Higher performance by disabling panic handlers.
+strip = true # Ensures debug symbols are removed.
+
 ```
+
+[Cargo Configuration- Size](https://v2.tauri.app/concept/size/)
 
 ### CSS Features
 
