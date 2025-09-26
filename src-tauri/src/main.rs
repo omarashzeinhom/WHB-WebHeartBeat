@@ -20,8 +20,10 @@ fn main() {
             controllers::website_controller::save_websites,
             controllers::website_controller::check_website_status,
             controllers::website_controller::get_web_vitals,
-            controllers::website_controller::export_websites,
+            //controllers::website_controller::export_websites,
             controllers::website_controller::save_to_cloud,
+            controllers::website_controller::scan_website,
+            controllers::website_controller::detect_wordpress,
             controllers::screenshot_controller::take_screenshot,
             controllers::screenshot_controller::take_bulk_screenshots,
             controllers::screenshot_controller::cancel_bulk_screenshots

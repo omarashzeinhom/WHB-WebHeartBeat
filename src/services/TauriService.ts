@@ -12,43 +12,65 @@ export class TauriService {
   }
 
   static async checkWebsite(website: Website): Promise<Website> {
-    const status = await WebsiteController.checkWebsiteStatus(website.url);
-    const vitals = await WebsiteController.getWebVitals(website.url);
+    try {
+      const [status, vitals] = await Promise.all([
+        WebsiteController.checkWebsiteStatus(website.url),
+        WebsiteController.getWebVitals(website.url)
+      ]);
 
-    return {
-      ...website,
-      status,
-      vitals: {
-        lcp: vitals.lcp || 0,
-        fid: vitals.fid || 0,
-        cls: vitals.cls || 0,
-        fcp: vitals.fcp || 0,
-        ttfb: vitals.ttfb || 0
-      },
-      lastChecked: new Date().toISOString(),
-    };
+      return {
+        ...website,
+        status,
+        vitals: vitals || { lcp: 0, fid: 0, cls: 0, fcp: 0, ttfb: 0 },
+        lastChecked: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error('Error checking website:', error);
+      return {
+        ...website,
+        status: null,
+        vitals: { lcp: 0, fid: 0, cls: 0, fcp: 0, ttfb: 0 },
+        lastChecked: new Date().toISOString(),
+      };
+    }
   }
 
   static async takeScreenshot(website: Website): Promise<Website> {
-    const screenshot = await WebsiteController.takeScreenshot(website.url);
-    return {
-      ...website,
-      screenshot,
-      lastChecked: new Date().toISOString(),
-    };
+    try {
+      const result = await WebsiteController.takeScreenshot(website);
+      return {
+        ...website,
+        screenshot: result.screenshot,
+        lastChecked: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error('Error taking screenshot:', error);
+      return {
+        ...website,
+        screenshot: null,
+        lastChecked: new Date().toISOString(),
+      };
+    }
   }
 
-  // New method for bulk screenshots
+  // Other methods remain the same...
   static async takeBulkScreenshots(): Promise<void> {
     return WebsiteController.takeBulkScreenshots();
   }
 
-  // New method to cancel bulk screenshots
   static async cancelBulkScreenshots(): Promise<void> {
     return WebsiteController.cancelBulkScreenshots();
   }
 
   static async saveToCloud(website: Website, provider: string): Promise<void> {
     return WebsiteController.saveToCloud(website, provider);
+  }
+
+  static async scanWebsite(website: Website, apiKey: string): Promise<any> {
+    return WebsiteController.scanWebsite(website, apiKey);
+  }
+
+  static async detectWordPress(url: string): Promise<boolean> {
+    return WebsiteController.detectWordPress(url);
   }
 }

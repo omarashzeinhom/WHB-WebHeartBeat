@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import "./App.css";
 import AddWebsiteForm from "./components/AddWebsiteForm/AddWebsiteForm";
 import WebsiteCard from "./components/WebsiteCard/WebsiteCard";
-import { TauriService } from "./services/TauriService";
-import { Website,/*Industry*/ } from "./models/website";
-import { WebsiteController } from "./controllers/websiteController";
+import WpscanSettings from "./components/WpscanSettings/WpscanSettings";
+import WpscanResults from "./components/WpscanResults/WpscanResults";
 import NavigationBar from "./components/NavigationBar/NavigationBar";
+import { TauriService } from "./services/TauriService";
+import { Website, WpscanResult } from "./models/website";
 import { listen } from '@tauri-apps/api/event';
 
 interface ScreenshotProgress {
@@ -17,55 +18,84 @@ interface ScreenshotProgress {
   errors: string[];
 }
 
+interface AppError {
+  message: string;
+  type: 'error' | 'warning' | 'info';
+  timestamp: Date;
+}
+
 function App() {
   const [websites, setWebsites] = useState<Website[]>([]);
   const [loading, setLoading] = useState(false);
   const [screenshotLoading, setScreenshotLoading] = useState(false);
-  //const [cloudSaving, setCloudSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'add'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'add' | 'wpscan'>('dashboard');
   const [cloudProvider, setCloudProvider] = useState<string | null>(null);
   const [syncFrequency, setSyncFrequency] = useState<number>(0);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [searchResults, setSearchResults] = useState<Website[]>([]);
-
-  // Screenshot progress state
   const [screenshotProgress, setScreenshotProgress] = useState<ScreenshotProgress | null>(null);
+  const [wpscanApiKey, setWpscanApiKey] = useState<string>('');
+  const [wpscanFilter, setWpscanFilter] = useState<'all' | 'wordpress' | 'other'>('all');
+  const [wpscanResults, setWpscanResults] = useState<{ [websiteId: number]: WpscanResult }>({});
+  const [isWpscanning, setIsWpscanning] = useState(false);
+  const [errors, setErrors] = useState<AppError[]>([]);
 
   useEffect(() => {
     loadWebsites();
     setupProgressListener();
   }, []);
 
-  const setupProgressListener = async () => {
-    // Listen for screenshot progress updates from backend
-    const unlisten = await listen<ScreenshotProgress>('screenshot-progress', (event) => {
-      const progress = event.payload;
-      setScreenshotProgress(progress);
+  // Auto-save websites when they change
+  useEffect(() => {
+    if (websites.length > 0) {
+      saveWebsites(websites);
+    }
+  }, [websites]);
 
-      if (progress.is_complete) {
-        // Reload websites to get updated screenshots
-        loadWebsites();
-        setScreenshotLoading(false);
-
-        // Clear progress after a short delay
-        setTimeout(() => {
-          setScreenshotProgress(null);
-        }, 2000);
-
-        // Show completion message
-        if (progress.errors.length > 0) {
-          console.warn('Some screenshots failed:', progress.errors);
-          alert(`Screenshots completed with ${progress.errors.length} errors. Check console for details.`);
-        } else {
-          console.log('All screenshots completed successfully');
-        }
-      }
-    });
-
-    // Cleanup listener on component unmount
-    return () => {
-      unlisten();
+  // Error handling utility
+  const addError = (message: string, type: 'error' | 'warning' | 'info' = 'error') => {
+    const error: AppError = {
+      message,
+      type,
+      timestamp: new Date(),
     };
+    setErrors(prev => [...prev, error]);
+
+    // Auto-remove errors after 5 seconds
+    setTimeout(() => {
+      setErrors(prev => prev.filter(e => e !== error));
+    }, 5000);
+  };
+
+  const setupProgressListener = async () => {
+    try {
+      const unlisten = await listen<ScreenshotProgress>('screenshot-progress', (event) => {
+        const progress = event.payload;
+        setScreenshotProgress(progress);
+
+        if (progress.is_complete) {
+          loadWebsites();
+          setScreenshotLoading(false);
+
+          setTimeout(() => {
+            setScreenshotProgress(null);
+          }, 2000);
+
+          if (progress.errors.length > 0) {
+            console.warn('Some screenshots failed:', progress.errors);
+            addError(`Screenshots completed with ${progress.errors.length} errors`);
+          } else {
+            console.log('All screenshots completed successfully');
+          }
+        }
+      });
+
+      return () => {
+        unlisten();
+      };
+    } catch (error) {
+      console.error("Failed to setup screenshot listener:", error);
+    }
   };
 
   const loadWebsites = async () => {
@@ -74,6 +104,7 @@ function App() {
       setWebsites(websitesData);
     } catch (error) {
       console.error("Failed to load websites:", error);
+      addError("Failed to load websites");
     }
   };
 
@@ -84,10 +115,6 @@ function App() {
       console.error("Failed to save websites:", error);
     }
   };
-
-  useEffect(() => {
-    saveWebsites(websites);
-  }, [websites]);
 
   const addWebsite = (url: string) => {
     try {
@@ -106,6 +133,7 @@ function App() {
       setWebsites([...websites, websiteData]);
     } catch (error) {
       console.error("Invalid URL:", error);
+      addError("Invalid URL provided");
     }
   };
 
@@ -123,10 +151,10 @@ function App() {
       const updatedWebsites = websites.map(w =>
         w.id === id ? updatedWebsite : w
       );
-
       setWebsites(updatedWebsites);
     } catch (error) {
       console.error("Error checking website:", error);
+      addError(`Failed to check website: ${website.name}`);
     }
 
     setLoading(false);
@@ -134,7 +162,6 @@ function App() {
 
   const takeScreenshot = async (id: number) => {
     setScreenshotLoading(true);
-    // Set the specific card as processing
     setWebsites(websites.map(w =>
       w.id === id ? { ...w, isProcessing: true } : w
     ));
@@ -151,11 +178,10 @@ function App() {
       const updatedWebsites = websites.map(w =>
         w.id === id ? { ...updatedWebsite, isProcessing: false } : w
       );
-
       setWebsites(updatedWebsites);
     } catch (error) {
       console.error("Error taking screenshot:", error);
-      // Reset processing state on error
+      addError(`Failed to take screenshot: ${website.name}`);
       setWebsites(websites.map(w =>
         w.id === id ? { ...w, isProcessing: false } : w
       ));
@@ -164,8 +190,7 @@ function App() {
     setScreenshotLoading(false);
   };
 
-
-  const handleCloudSync = async (websites: Website[]) => {
+  const handleCloudSync = async () => {
     if (!cloudProvider) return;
 
     try {
@@ -175,14 +200,24 @@ function App() {
       console.log("Cloud sync completed");
     } catch (error) {
       console.error("Cloud sync failed:", error);
+      addError("Cloud sync failed");
     }
   };
 
   const checkAllWebsites = async () => {
     setLoading(true);
-    for (const website of websites) {
-      await checkWebsite(website.id);
-    }
+    const checkPromises = websites.map(async (website) => {
+      try {
+        const updatedWebsite = await TauriService.checkWebsite(website);
+        setWebsites(prev => prev.map(w =>
+          w.id === website.id ? updatedWebsite : w
+        ));
+      } catch (error) {
+        console.error(`Error checking website ${website.name}:`, error);
+      }
+    });
+
+    await Promise.allSettled(checkPromises);
     setLoading(false);
   };
 
@@ -195,7 +230,7 @@ function App() {
       await TauriService.takeBulkScreenshots();
     } catch (error) {
       console.error("Error starting bulk screenshots:", error);
-      alert("Failed to start bulk screenshots. Check console for details.");
+      addError("Failed to start bulk screenshots");
       setScreenshotLoading(false);
       setScreenshotProgress(null);
     }
@@ -208,6 +243,7 @@ function App() {
       setScreenshotProgress(null);
     } catch (error) {
       console.error("Error canceling screenshots:", error);
+      addError("Failed to cancel screenshots");
     }
   };
 
@@ -221,10 +257,9 @@ function App() {
     ));
   };
 
-
   const handleExport = async () => {
     try {
-      const data = await WebsiteController.exportWebsites();
+      const data = JSON.stringify(websites, null, 2);
       const blob = new Blob([data], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -236,6 +271,7 @@ function App() {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Export failed:', error);
+      addError('Export failed');
     }
   };
 
@@ -255,12 +291,81 @@ function App() {
 
   const handleSearchResultClick = () => {
     setActiveTab('dashboard');
-    // You could add highlighting or scrolling to the specific website card here
   };
 
   const handleThemeChange = (newTheme: 'light' | 'dark') => {
     setTheme(newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
+  };
+
+  // WPScan handlers
+  const getFilteredWebsites = (filter: 'all' | 'wordpress' | 'other'): Website[] => {
+    return websites.filter(website => {
+      switch (filter) {
+        case 'wordpress':
+          return website.isWordPress === true;
+        case 'other':
+          return website.isWordPress === false;
+        default:
+          return true;
+      }
+    });
+  };
+
+  const handleWpscanSelected = async () => {
+    if (!wpscanApiKey) {
+      addError('Please enter your WPScan API key');
+      return;
+    }
+
+    const filteredWebsites = getFilteredWebsites(wpscanFilter);
+
+    if (filteredWebsites.length === 0) {
+      addError('No websites match the selected filter');
+      return;
+    }
+
+    setIsWpscanning(true);
+    try {
+      for (const website of filteredWebsites) {
+        const result = await TauriService.scanWebsite(website, wpscanApiKey);
+        setWpscanResults(prev => ({
+          ...prev,
+          [website.id]: result
+        }));
+      }
+    } catch (error) {
+      console.error('WPScan error:', error);
+      addError('Error scanning websites');
+    }
+    setIsWpscanning(false);
+  };
+
+  const handleWpscanAll = async () => {
+    if (!wpscanApiKey) {
+      addError('Please enter your WPScan API key');
+      return;
+    }
+
+    if (websites.length === 0) {
+      addError('No websites to scan');
+      return;
+    }
+
+    setIsWpscanning(true);
+    try {
+      for (const website of websites) {
+        const result = await TauriService.scanWebsite(website, wpscanApiKey);
+        setWpscanResults(prev => ({
+          ...prev,
+          [website.id]: result
+        }));
+      }
+    } catch (error) {
+      console.error('WPScan error:', error);
+      addError('Error scanning websites');
+    }
+    setIsWpscanning(false);
   };
 
   return (
@@ -272,6 +377,34 @@ function App() {
         searchResults={searchResults}
         onSearchResultClick={handleSearchResultClick}
       />
+
+      {/* Error Display */}
+      {errors.length > 0 && (
+        <div className="error-container">
+          {errors.map((error, index) => (
+            <div key={`${error.timestamp.getTime()}-${index}`} className={`error-message error-${error.type}`}>
+              <div className="error-content">
+                <span className="error-icon">
+                  {error.type === 'error' && '❌'}
+                  {error.type === 'warning' && '⚠️'}
+                  {error.type === 'info' && 'ℹ️'}
+                </span>
+                <span className="error-text">{error.message}</span>
+                <span className="error-time">
+                  {error.timestamp.toLocaleTimeString()}
+                </span>
+              </div>
+              <button 
+                className="error-close"
+                onClick={() => setErrors(prev => prev.filter(e => e !== error))}
+                aria-label="Close error"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <nav className="tabs">
         <button
@@ -285,6 +418,12 @@ function App() {
           onClick={() => setActiveTab("add")}
         >
           Add Website
+        </button>
+        <button
+          className={activeTab === "wpscan" ? "active" : ""}
+          onClick={() => setActiveTab("wpscan")}
+        >
+          Scan Website
         </button>
       </nav>
 
@@ -318,7 +457,7 @@ function App() {
             </div>
           </div>
 
-          {/* Backend Progress Indicator */}
+          {/* Progress Indicator */}
           {screenshotProgress && (
             <div className="progress-container">
               <div className="progress-bar">
@@ -407,6 +546,29 @@ function App() {
         </div>
       )}
 
+      {activeTab === "wpscan" && (
+        <div className="wpscan-section">
+          <h2>Website Security Scanner</h2>
+          <p>Scan your websites for security vulnerabilities using WPScan API</p>
+          
+          <div className="wpscan-content">
+            <WpscanSettings
+              onApiKeyChange={setWpscanApiKey}
+              onFilterChange={setWpscanFilter}
+              onScanSelected={handleWpscanSelected}
+              onScanAll={handleWpscanAll}
+              websites={websites}
+              isScanning={isWpscanning}
+            />
+            
+            <WpscanResults
+              results={wpscanResults}
+              websites={websites}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="cloud-sync-options">
         <h3>Cloud Sync</h3>
         <select
@@ -418,26 +580,26 @@ function App() {
           <option value="dropbox">Dropbox</option>
           <option value="one-drive">OneDrive</option>
         </select>
+
+        {cloudProvider && (
+          <div>
+            <label>Sync Frequency:</label>
+            <select
+              value={syncFrequency}
+              onChange={(e) => setSyncFrequency(Number(e.target.value))}
+            >
+              <option value={0}>Manual</option>
+              <option value={1}>Every hour</option>
+              <option value={24}>Daily</option>
+              <option value={168}>Weekly</option>
+            </select>
+
+            <button onClick={handleCloudSync}>
+              Sync Now
+            </button>
+          </div>
+        )}
       </div>
-
-      {cloudProvider && (
-        <div>
-          <label>Sync Frequency:</label>
-          <select
-            value={syncFrequency}
-            onChange={(e) => setSyncFrequency(Number(e.target.value))}
-          >
-            <option value={0}>Manual</option>
-            <option value={1}>Every hour</option>
-            <option value={24}>Daily</option>
-            <option value={168}>Weekly</option>
-          </select>
-
-          <button onClick={() => handleCloudSync(websites)}>
-            Sync Now
-          </button>
-        </div>
-      )}
 
       <button onClick={handleExport}>Export Settings</button>
     </main>

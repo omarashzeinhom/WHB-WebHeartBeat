@@ -1,0 +1,143 @@
+/* components/ErrorDisplay/ErrorDisplay.css */
+.error-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  max-width: 400px;
+  pointer-events: none;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+  animation: slideInRight 0.3s ease-out;
+  transition: all 0.3s ease;
+}
+
+.error-message:hover {
+  transform: translateX(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.error-error {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(220, 38, 38, 0.9));
+  color: white;
+  border-left: 4px solid #dc2626;
+}
+
+.error-warning {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.9), rgba(217, 119, 6, 0.9));
+  color: white;
+  border-left: 4px solid #d97706;
+}
+
+.error-info {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(37, 99, 235, 0.9));
+  color: white;
+  border-left: 4px solid #2563eb;
+}
+
+.error-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 8px;
+}
+
+.error-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.error-text {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.error-time {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.error-close {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 12px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.error-close:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Dark theme support */
+[data-theme="dark"] .error-message {
+  backdrop-filter: blur(10px);
+}
+
+[data-theme="dark"] .error-error {
+  background: linear-gradient(135deg, rgba(185, 28, 28, 0.9), rgba(153, 27, 27, 0.9));
+}
+
+[data-theme="dark"] .error-warning {
+  background: linear-gradient(135deg, rgba(180, 83, 9, 0.9), rgba(146, 64, 14, 0.9));
+}
+
+[data-theme="dark"] .error-info {
+  background: linear-gradient(135deg, rgba(29, 78, 216, 0.9), rgba(30, 64, 175, 0.9));
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .error-container {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+  
+  .error-message {
+    padding: 10px 12px;
+  }
+  
+  .error-text {
+    font-size: 13px;
+  }
+  
+  .error-time {
+    display: none; /* Hide timestamp on mobile to save space */
+  }
+}

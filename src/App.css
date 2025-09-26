@@ -359,6 +359,34 @@ h6 {
   color: var(--color-white);
 }
 
+/* WPScan Section */
+.wpscan-section {
+  background: var(--color-ui-background);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75em; /* 12px */
+  padding: 1.5625em; /* 25px */
+  margin-bottom: 1.875em; /* 30px */
+  backdrop-filter: blur(10px);
+}
+
+.wpscan-section h2 {
+  color: var(--color-white);
+  margin-bottom: 0.5em; /* 8px */
+  font-weight: 600;
+}
+
+.wpscan-section > p {
+  color: var(--color-text-secondary);
+  margin-bottom: 1.875em; /* 30px */
+  font-size: 1em; /* 16px */
+}
+
+.wpscan-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.875em; /* 30px */
+}
+
 /* Cloud Sync Options */
 .cloud-sync-options {
   background: var(--color-ui-background);
