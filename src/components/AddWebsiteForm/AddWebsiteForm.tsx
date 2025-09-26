@@ -8,7 +8,7 @@ interface AddWebsiteFormProps {
 
 const AddWebsiteForm: React.FC<AddWebsiteFormProps> = ({ onAdd, loading }) => {
   const [url, setUrl] = useState('');
-  
+
   const handleSubmit = () => {
     if (url.trim()) {
       onAdd(url.trim());
@@ -25,13 +25,14 @@ const AddWebsiteForm: React.FC<AddWebsiteFormProps> = ({ onAdd, loading }) => {
   return (
     <div className="add-website-form">
       <input
+        className='cloud-sync-options'
         type="text"
         placeholder="https://example.com"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         onKeyPress={handleKeyPress}
       />
-      <button onClick={handleSubmit} disabled={!url.trim() || loading}>
+      <button onClick={handleSubmit} disabled={!url.trim() || loading} className='scan-btn'>
         {loading ? 'Adding...' : 'Add Website'}
       </button>
     </div>
