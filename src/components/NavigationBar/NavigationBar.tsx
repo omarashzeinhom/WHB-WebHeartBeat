@@ -8,13 +8,17 @@ import CloseIcon from '../../assets/icons/close.svg';
 import ThemeToggleIcon from '../../assets/icons/theme-toggle.svg';
 import Logo from '../../assets/WHB.svg';
 
+// Update NavigationBar.tsx
 interface NavigationBarProps {
   initialTheme?: 'light' | 'dark';
   onThemeChange?: (theme: 'light' | 'dark') => void;
   onSearch?: (query: string) => void;
   searchResults?: any[];
   onSearchResultClick?: (result: any) => void;
+  onNavigate?: (tab: 'dashboard' | 'add' | 'wpscan' | 'settings') => void; // Add this
+  activeTab?: string; // Add this to highlight current tab
 }
+
 
 const NavigationBar: React.FC<NavigationBarProps> = ({ 
   initialTheme = 'light', 

@@ -54,9 +54,15 @@
 }
 
 @keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.7; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .card-status-bar {
@@ -188,26 +194,52 @@
     min-height: 250px;
     padding: 15px;
   }
-  
+
   .card-actions {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
-  
+
   .action-btn {
     padding: 8px 4px;
   }
-  
+
   .action-btn img {
     width: 18px;
     height: 18px;
   }
-  
+
   .action-btn span {
     font-size: 0.7rem;
   }
-  
+
   .website-title {
     font-size: 1.2rem;
   }
+}
+
+/* Add to WebsiteCard.css */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.website-industry-badge {
+  font-size: 18px;
+  margin-left: 8px;
+}
+
+.card-title-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px 0;
 }

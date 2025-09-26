@@ -1,0 +1,252 @@
+:root {
+  /* Light theme colors */
+  --card-bg-light: #ffffff;
+  --card-shadow-light: rgba(0, 0, 0, 0.1);
+  --text-primary-light: #1a1a1a;
+  --text-secondary-light: #666666;
+  --text-muted-light: #999999;
+  --progress-bg-light: #e5e5e5;
+  --progress-fill-light: #22c55e;
+  --amount-color-light: #22c55e;
+  --profit-color-light: #22c55e;
+
+  /* Dark theme colors */
+  --card-bg-dark: #2a2a2a;
+  --card-shadow-dark: rgba(0, 0, 0, 0.3);
+  --text-primary-dark: #ffffff;
+  --text-secondary-dark: #cccccc;
+  --text-muted-dark: #999999;
+  --progress-bg-dark: #404040;
+  --progress-fill-dark: #22c55e;
+  --amount-color-dark: #22c55e;
+  --profit-color-dark: #22c55e;
+
+  /* Card stack colors */
+  --card-stack-1-light: #f0f0f0;
+  --card-stack-2-light: #e8e8e8;
+  --card-stack-3-light: #e0e0e0;
+  --card-stack-1-dark: #1a1a1a;
+  --card-stack-2-dark: #151515;
+  --card-stack-3-dark: #101010;
+}
+
+.earnings-card {
+  --card-bg: var(--card-bg-dark);
+  --card-shadow: var(--card-shadow-dark);
+  --text-primary: var(--text-primary-dark);
+  --text-secondary: var(--text-secondary-dark);
+  --text-muted: var(--text-muted-dark);
+  --progress-bg: var(--progress-bg-dark);
+  --progress-fill: var(--progress-fill-dark);
+  --amount-color: var(--amount-color-dark);
+  --profit-color: var(--profit-color-dark);
+  --card-stack-1: var(--card-stack-1-dark);
+  --card-stack-2: var(--card-stack-2-dark);
+  --card-stack-3: var(--card-stack-3-dark);
+}
+
+.earnings-card.light {
+  --card-bg: var(--card-bg-light);
+  --card-shadow: var(--card-shadow-light);
+  --text-primary: var(--text-primary-light);
+  --text-secondary: var(--text-secondary-light);
+  --text-muted: var(--text-muted-light);
+  --progress-bg: var(--progress-bg-light);
+  --progress-fill: var(--progress-fill-light);
+  --amount-color: var(--amount-color-light);
+  --profit-color: var(--profit-color-light);
+  --card-stack-1: var(--card-stack-1-light);
+  --card-stack-2: var(--card-stack-2-light);
+  --card-stack-3: var(--card-stack-3-light);
+}
+
+.earnings-card {
+  width: 320px;
+  height: 200px;
+  perspective: 1000px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.card-stack {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.card {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px var(--card-shadow);
+  transition: all 0.3s ease;
+}
+
+.card-back-3 {
+  background: var(--card-stack-3);
+  z-index: 0;
+  transform: translateY(12px) translateX(-6px) rotate(-6deg);
+}
+
+.card-back-2 {
+  background: var(--card-stack-2);
+  z-index: 1;
+  transform: translateY(8px) translateX(-4px) rotate(-4deg);
+}
+
+.card-back-1 {
+  background: var(--card-stack-1);
+  z-index: 2;
+  transform: translateY(4px) translateX(-2px) rotate(-2deg);
+}
+
+.card-front {
+  background: var(--card-bg);
+  z-index: 3;
+  transform: translateY(0px) translateX(0px) rotate(0deg);
+}
+
+.card-content {
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.header-section {
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+  transform: rotate(-15deg);
+  transform-origin: left bottom;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+  transform: rotate(-15deg);
+  transform-origin: left bottom;
+}
+
+.amount-section {
+  margin-bottom: 8px;
+}
+
+.amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--amount-color);
+  transform: rotate(-15deg);
+  transform-origin: left bottom;
+  display: inline-block;
+}
+
+.profit-section {
+  margin-bottom: 16px;
+}
+
+.profit-text {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+  transform: rotate(-15deg);
+  transform-origin: left bottom;
+}
+
+.profit-percentage {
+  color: var(--profit-color);
+  font-weight: 600;
+}
+
+.progress-section {
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+}
+
+.progress-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.progress-ring {
+  transform: scale(0.8);
+}
+
+.progress-ring-progress {
+  transition: stroke-dashoffset 0.5s ease-in-out;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.progress-percentage {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Hover effects */
+.earnings-card:hover .card-stack {
+  transform: rotateY(5deg) rotateX(5deg);
+}
+
+.earnings-card:hover .card-front {
+  transform: translateY(-2px) translateX(1px) rotate(1deg);
+}
+
+.earnings-card:hover .card-back-1 {
+  transform: translateY(2px) translateX(-1px) rotate(-1deg);
+}
+
+.earnings-card:hover .card-back-2 {
+  transform: translateY(6px) translateX(-3px) rotate(-3deg);
+}
+
+.earnings-card:hover .card-back-3 {
+  transform: translateY(10px) translateX(-5px) rotate(-5deg);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .earnings-card {
+    width: 280px;
+    height: 180px;
+  }
+
+  .card-content {
+    padding: 20px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .amount {
+    font-size: 20px;
+  }
+
+  .progress-container {
+    width: 100px;
+    height: 100px;
+  }
+
+  .progress-ring {
+    transform: scale(0.7);
+  }
+}

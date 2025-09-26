@@ -30,6 +30,13 @@ pub async fn save_websites(
 }
 
 #[tauri::command]
+pub async fn export_websites(storage: State<'_, StorageService>) -> Result<String, String> {
+    storage.export_websites()
+        .map_err(|e| e.to_string())
+}
+
+
+#[tauri::command]
 pub async fn check_website_status(url: String) -> Result<u16, String> {
     // Simple implementation using reqwest
     let client = reqwest::Client::new();
@@ -91,4 +98,22 @@ pub async fn detect_wordpress(url: String) -> Result<bool, String> {
 pub async fn save_to_cloud(website: Website, provider: String) -> Result<(), String> {
     println!("Saving to {}: {:?}", provider, website);
     Ok(())
+}
+
+
+#[tauri::command]
+pub async fn update_website_industry(
+    id: i64,
+    industry: String,
+    storage: State<'_, StorageService>,
+) -> Result<(), String> {
+    let mut websites = storage.get_websites().map_err(|e| e.to_string())?;
+    
+    if let Some(website) = websites.iter_mut().find(|w| w.id == id) {
+        website.industry = industry;
+        storage.save_websites(&websites).map_err(|e| e.to_string())?;
+        Ok(())
+    } else {
+        Err("Website not found".to_string())
+    }
 }

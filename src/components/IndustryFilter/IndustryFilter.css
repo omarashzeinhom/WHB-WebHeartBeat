@@ -14,13 +14,24 @@
   font-size: var(--font-size-h3-desktop);
   line-height: var(--line-height-h3-desktop);
   font-weight: 600;
-  font-family: 'Red Hat Display', sans-serif;
+  font-family: "Red Hat Display", sans-serif;
 }
 
 .industry-buttons {
+  /* Made horizontal scrollable instead of wrapping */
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.5rem;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  padding-bottom: 0.5rem;
+}
+
+/* Hide scrollbar for webkit browsers */
+.industry-buttons::-webkit-scrollbar {
+  display: none;
 }
 
 .industry-btn {
@@ -35,8 +46,11 @@
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 0.875em;
-  font-family: 'Lato', sans-serif;
+  font-family: "Lato", sans-serif;
   font-weight: 600;
+  /* Prevent shrinking in horizontal layout */
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .industry-btn:hover {
@@ -59,20 +73,88 @@
   white-space: nowrap;
 }
 
+/* Added styles for filter popup button */
+.filter-popup-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75em 1.5em;
+  border: 2px dashed var(--color-border);
+  border-radius: 0.5em;
+  background: transparent;
+  color: var(--color-white);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875em;
+  font-family: "Lato", sans-serif;
+  font-weight: 600;
+  flex-shrink: 0;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+.filter-popup-btn:hover {
+  opacity: 1;
+  border-color: var(--color-accent-red-gradient);
+  color: var(--color-accent-red-gradient);
+  transform: translateY(-0.125em);
+}
+
+/* Added styles for scroll buttons */
+.scroll-btn {
+  background: var(--color-ui-background);
+  border: 1px solid var(--color-border);
+  color: var(--color-white);
+}
+
+.scroll-btn:hover {
+  background: var(--color-background);
+}
+
+/* Added styles for clear all button */
+.clear-all-btn {
+  color: var(--color-accent-red-gradient);
+}
+
+.filter-title {
+  color: var(--color-white);
+  font-size: var(--font-size-h3-desktop);
+  line-height: var(--line-height-h3-desktop);
+  font-weight: 600;
+  font-family: "Red Hat Display", sans-serif;
+  margin: 0;
+}
+
+/* Added fade indicators */
+.fade-indicator {
+  z-index: 5;
+}
+
 @media (max-width: 768px) {
   .industry-buttons {
-    justify-content: center;
+    /* Keep horizontal scroll on mobile */
+    justify-content: flex-start;
   }
-  
+
   .industry-btn {
-    flex: 1;
     min-width: 120px;
     justify-content: center;
     font-size: 0.8em;
     padding: 0.625em 1em;
   }
-  
+
+  .filter-popup-btn {
+    min-width: 100px;
+    font-size: 0.8em;
+    padding: 0.625em 1em;
+  }
+
   .industry-filter h3 {
+    font-size: var(--font-size-h3-mobile);
+    line-height: var(--line-height-h3-mobile);
+  }
+
+  .filter-title {
     font-size: var(--font-size-h3-mobile);
     line-height: var(--line-height-h3-mobile);
   }

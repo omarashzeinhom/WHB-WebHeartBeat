@@ -10,6 +10,7 @@ import { TauriService } from "./services/TauriService";
 import { Industry, Website, WpscanResult } from "./models/website";
 import { listen } from '@tauri-apps/api/event';
 import WebsiteDetail from "./components/WebsiteDetail/WebSiteDetail";
+import { EarningsCard } from "./components/InterFaceCard/InterFaceCard";
 
 interface ScreenshotProgress {
   total: number;
@@ -302,12 +303,13 @@ function App() {
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
-  // Filter websites by industry for dashboard
+
+  // Fix the typo in getIndustryFilteredWebsites function
   const getIndustryFilteredWebsites = (): Website[] => {
     if (selectedIndustry === 'all') {
-      return websites;
+      return websites; // Fix: was 'website' but should be 'websites'
     }
-    return websites.filter(website => website.industry === selectedIndustry);
+    return websites.filter(website => website.industry === selectedIndustry); // Fix: was 'website' but should be 'websites'
   };
 
   // WPScan handlers - fixed function name
@@ -388,6 +390,26 @@ function App() {
   // Handle back from detail view
   const handleBackToDashboard = () => {
     setSelectedWebsite(null);
+  };
+
+
+  // In your App component, add the industry change handler
+  // Fix the handleIndustryChange function in App.tsx
+  const handleIndustryChange = async (id: number, industry: Industry) => {
+    // Update frontend state immediately
+    setWebsites(prevWebsites =>
+      prevWebsites.map(website =>
+        website.id === id ? { ...website, industry } : website
+      )
+    );
+
+    // Also update in backend
+    try {
+      await TauriService.updateWebsiteIndustry(id, industry);
+    } catch (error) {
+      console.error('Failed to update industry:', error);
+      addError('Failed to update industry');
+    }
   };
 
   // Main render function with proper conditional rendering
@@ -477,6 +499,8 @@ function App() {
     <div className="dashboard">
       <div className="dashboard-header">
         <h2>Website Monitoring</h2>
+        <EarningsCard totalExpense={0} amount={"569,000"} profitPercentage={0} progressPercentage={120} />
+
         <div className="actions">
           <button
             className="scan-btn"
@@ -508,7 +532,7 @@ function App() {
         selectedIndustry={selectedIndustry}
         onIndustryChange={setSelectedIndustry}
       />
-      
+
       {/* Progress Indicator */}
       {screenshotProgress && (
         <div className="progress-container">
@@ -567,6 +591,7 @@ function App() {
               onToggleFavorite={toggleFavorite}
               onTakeScreenshot={takeScreenshot}
               onWebsiteClick={handleWebsiteClick}
+              onIndustryChange={handleIndustryChange}
               loading={loading}
               screenshotLoading={screenshotLoading}
               isProcessing={website.isProcessing || false}
@@ -659,7 +684,6 @@ function App() {
           ))}
         </div>
       )}
-
       {renderContent()}
     </main>
   );

@@ -62,7 +62,40 @@ pub struct Theme {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct User {
+
     pub id: u32,
     pub login: String,
     pub display_name: String,
+}
+
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum Industry {
+    General,
+    Ecommerce,
+    Finance,
+    Healthcare,
+    Education,
+    Technology,
+    Media,
+    Travel,
+    Government,
+    Nonprofit,
+}
+
+impl Industry {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Industry::General => "general",
+            Industry::Ecommerce => "ecommerce",
+            Industry::Finance => "finance",
+            Industry::Healthcare => "healthcare",
+            Industry::Education => "education",
+            Industry::Technology => "technology",
+            Industry::Media => "media",
+            Industry::Travel => "travel",
+            Industry::Government => "government",
+            Industry::Nonprofit => "nonprofit",
+        }
+    }
 }

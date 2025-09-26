@@ -1,6 +1,7 @@
 // services/TauriService.ts
+import { invoke } from "@tauri-apps/api/core";
 import { WebsiteController } from "../controllers/websiteController";
-import { Website } from "../models/website";
+import { Industry, Website } from "../models/website";
 
 export class TauriService {
   static async loadWebsites(): Promise<Website[]> {
@@ -73,4 +74,15 @@ export class TauriService {
   static async detectWordPress(url: string): Promise<boolean> {
     return WebsiteController.detectWordPress(url);
   }
+
+  static async updateWebsiteIndustry(id: number, industry: Industry): Promise<void> {
+    try {
+      await invoke('update_website_industry', { id, industry });
+    } catch (error) {
+      console.error("Failed to update website industry:", error);
+      throw error;
+    }
+  }
+
 }
+

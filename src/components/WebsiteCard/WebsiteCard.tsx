@@ -1,6 +1,6 @@
 import React from 'react';
 import './WebsiteCard.css';
-import { Website } from '../../models/website';
+import { Industry, Website } from '../../models/website';
 
 // Import SVG icons
 import ScreenshotIcon from '../../assets/icons/screenshot-icon.svg';
@@ -9,6 +9,7 @@ import DeleteIcon from '../../assets/icons/delete-icon.svg';
 import OpenLinkIcon from '../../assets/icons/open-link-icon.svg';
 import FavoriteIcon from '../../assets/icons/favorite-icon.svg';
 import FavoriteFilledIcon from "../../assets/icons/favorite-filled-icon.svg";
+import IndustrySelector from '../IndustrySelector/IndustrySelector';
 
 interface WebsiteCardProps {
   website: Website;
@@ -16,6 +17,7 @@ interface WebsiteCardProps {
   onRemove: (id: number) => void;
   onToggleFavorite: (id: number) => void;
   onTakeScreenshot: (id: number) => void;
+  onIndustryChange: (id: number, industry: Industry) => void;
   loading: boolean;
   screenshotLoading: boolean;
   isProcessing?: boolean;
@@ -23,24 +25,45 @@ interface WebsiteCardProps {
 
 }
 
+// Define industries array with proper typing
+const industries: { value: Industry; label: string; icon: string }[] = [
+  { value: 'ecommerce', label: 'E-Commerce', icon: '🛒' },
+  { value: 'finance', label: 'Finance', icon: '💰' },
+  { value: 'healthcare', label: 'Healthcare', icon: '🏥' },
+  { value: 'education', label: 'Education', icon: '🎓' },
+  { value: 'technology', label: 'Technology', icon: '💻' },
+  { value: 'media', label: 'Media', icon: '📰' },
+  { value: 'travel', label: 'Travel', icon: '✈️' },
+  { value: 'government', label: 'Government', icon: '🏛️' },
+  { value: 'nonprofit', label: 'Non-Profit', icon: '🤝' },
+  { value: 'general', label: 'General', icon: '🌍' },
+];
+
 const WebsiteCard: React.FC<WebsiteCardProps> = ({
   website,
   onCheck,
   onRemove,
   onToggleFavorite,
   onTakeScreenshot,
+  onIndustryChange,
   onWebsiteClick,
   loading,
   screenshotLoading,
 }) => {
   const getStatusColor = (status: number | null) => {
-    if (status === null) return '#6c757d'; // Gray for unknown
-    return status === 200 ? '#28a745' : '#dc3545'; // Green for up, red for down
+    if (status === null) return '#6c757d';
+    return status === 200 ? '#28a745' : '#dc3545';
   };
 
   const openWebsite = () => {
     window.open(website.url, '_blank');
   };
+
+  const handleIndustryChange = (industry: Industry) => {
+    onIndustryChange(website.id, industry);
+  };
+
+
 
   return (
     <div
@@ -48,7 +71,7 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
       onClick={() => onWebsiteClick(website)}
       style={{ cursor: 'pointer' }}
     >
-      {/* Screenshot preview (if available) */}
+      {/* Screenshot preview */}
       {website.screenshot && (
         <div className="screenshot-preview">
           <img
@@ -58,28 +81,43 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
           />
         </div>
       )}
-      {/* Status badge at the top */}
-      <div className="card-status-bar">
+
+      {/* Status badge and industry selector */}
+      <div className="card-header">
         <div className="status-indicator" style={{ backgroundColor: getStatusColor(website.status) }}>
           Status: {website.status || 'N/A'}
         </div>
-        <button
-          className="favorite-btn"
-          onClick={() => onToggleFavorite(website.id)}
-          title={website.favorite ? 'Remove from favorites' : 'Add to favorites'}
-        >
-          <img
-            src={website.favorite ? FavoriteFilledIcon : FavoriteIcon}
-            alt={website.favorite ? 'Favorited' : 'Not favorited'}
+        <div className="header-actions">
+          <IndustrySelector
+            currentIndustry={website.industry}
+            onIndustryChange={handleIndustryChange}
+            compact={true}
           />
-        </button>
+          <button
+            className="favorite-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite(website.id);
+            }}
+            title={website.favorite ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            <img
+              src={website.favorite ? FavoriteFilledIcon : FavoriteIcon}
+              alt={website.favorite ? 'Favorited' : 'Not favorited'}
+            />
+          </button>
+        </div>
       </div>
 
-
-      {/* Website title in the middle */}
+      {/* Website title */}
       <div className="card-title-section">
         <h3 className="website-title">{website.name}</h3>
+        <span className="website-industry-badge">
+          {industries.find(ind => ind.value === website.industry)?.icon}
+        </span>
       </div>
+
+
 
       {/* Action buttons with icons */}
       <div className="card-actions">
