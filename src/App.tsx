@@ -594,14 +594,14 @@ function App() {
               <option value={168}>Weekly</option>
             </select>
 
-            <button onClick={handleCloudSync}>
+            <button className="scan-btn" onClick={handleCloudSync}>
               Sync Now
             </button>
           </div>
         )}
       </div>
 
-      <button onClick={handleExport}>Export Settings</button>
+      <button className="scan-btn" onClick={handleExport}>Export Settings</button>
     </main>
   );
 }
