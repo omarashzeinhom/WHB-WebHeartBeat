@@ -43,18 +43,23 @@ export interface Website {
   vitals: WebVitals | null;
   status: number | null;
   lastChecked: string | null;
-  industry: string;
+  industry: Industry;
   favorite: boolean;
   screenshot: string | null;
   isProcessing?: boolean;
   isWordPress?: boolean;
   wpscanResult?: WpscanResult | null;
+  description?: string;
+  tags?: string[];
 }
-
 export type Industry =
   | 'general'
   | 'ecommerce'
   | 'finance'
   | 'healthcare'
   | 'education'
-  | 'technology';
+  | 'technology'
+  | 'media'
+  | 'travel'
+  | 'government'
+  | 'nonprofit';

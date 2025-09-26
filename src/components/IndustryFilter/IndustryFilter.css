@@ -1,0 +1,79 @@
+/* components/IndustryFilter/IndustryFilter.css */
+.industry-filter {
+  margin-bottom: 2rem;
+  padding: 1.5625em;
+  background: var(--color-ui-background);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75em;
+  backdrop-filter: blur(10px);
+}
+
+.industry-filter h3 {
+  margin: 0 0 1rem 0;
+  color: var(--color-white);
+  font-size: var(--font-size-h3-desktop);
+  line-height: var(--line-height-h3-desktop);
+  font-weight: 600;
+  font-family: 'Red Hat Display', sans-serif;
+}
+
+.industry-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.industry-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75em 1.5em;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5em;
+  background: var(--color-background);
+  color: var(--color-white);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875em;
+  font-family: 'Lato', sans-serif;
+  font-weight: 600;
+}
+
+.industry-btn:hover {
+  background: var(--color-ui-background);
+  transform: translateY(-0.125em);
+}
+
+.industry-btn.active {
+  background: var(--color-accent-red-gradient);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 0.5em 1.5625em rgba(231, 76, 60, 0.3);
+}
+
+.industry-icon {
+  font-size: 1.1em;
+}
+
+.industry-label {
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .industry-buttons {
+    justify-content: center;
+  }
+  
+  .industry-btn {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
+    font-size: 0.8em;
+    padding: 0.625em 1em;
+  }
+  
+  .industry-filter h3 {
+    font-size: var(--font-size-h3-mobile);
+    line-height: var(--line-height-h3-mobile);
+  }
+}

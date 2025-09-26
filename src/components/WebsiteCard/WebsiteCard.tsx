@@ -19,6 +19,8 @@ interface WebsiteCardProps {
   loading: boolean;
   screenshotLoading: boolean;
   isProcessing?: boolean;
+  onWebsiteClick: (website: Website) => void;
+
 }
 
 const WebsiteCard: React.FC<WebsiteCardProps> = ({
@@ -27,9 +29,9 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
   onRemove,
   onToggleFavorite,
   onTakeScreenshot,
+  onWebsiteClick,
   loading,
   screenshotLoading,
-  isProcessing = false
 }) => {
   const getStatusColor = (status: number | null) => {
     if (status === null) return '#6c757d'; // Gray for unknown
@@ -41,8 +43,11 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
   };
 
   return (
-    <div className={`website-card ${website.favorite ? 'favorite' : ''} ${isProcessing ? 'processing' : ''}`}>
-
+    <div
+      className={`website-card ${website.favorite ? 'favorite' : ''}`}
+      onClick={() => onWebsiteClick(website)}
+      style={{ cursor: 'pointer' }}
+    >
       {/* Screenshot preview (if available) */}
       {website.screenshot && (
         <div className="screenshot-preview">

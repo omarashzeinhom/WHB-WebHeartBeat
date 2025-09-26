@@ -5,9 +5,11 @@ import WebsiteCard from "./components/WebsiteCard/WebsiteCard";
 import WpscanSettings from "./components/WpscanSettings/WpscanSettings";
 import WpscanResults from "./components/WpscanResults/WpscanResults";
 import NavigationBar from "./components/NavigationBar/NavigationBar";
+import IndustryFilter from "./components/IndustryFilter/IndustryFilter";
 import { TauriService } from "./services/TauriService";
-import { Website, WpscanResult } from "./models/website";
+import { Industry, Website, WpscanResult } from "./models/website";
 import { listen } from '@tauri-apps/api/event';
+import WebsiteDetail from "./components/WebsiteDetail/WebSiteDetail";
 
 interface ScreenshotProgress {
   total: number;
@@ -39,6 +41,8 @@ function App() {
   const [wpscanResults, setWpscanResults] = useState<{ [websiteId: number]: WpscanResult }>({});
   const [isWpscanning, setIsWpscanning] = useState(false);
   const [errors, setErrors] = useState<AppError[]>([]);
+  const [selectedIndustry, setSelectedIndustry] = useState<Industry | 'all'>('all');
+  const [selectedWebsite, setSelectedWebsite] = useState<Website | null>(null);
 
   useEffect(() => {
     loadWebsites();
@@ -116,7 +120,7 @@ function App() {
     }
   };
 
-  const addWebsite = (url: string) => {
+  const addWebsite = (url: string, industry: Industry = 'general') => {
     try {
       const websiteData: Website = {
         id: Date.now(),
@@ -125,7 +129,7 @@ function App() {
         vitals: null,
         status: null,
         lastChecked: null,
-        industry: "general",
+        industry: industry,
         favorite: false,
         screenshot: null
       };
@@ -298,8 +302,16 @@ function App() {
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
-  // WPScan handlers
-  const getFilteredWebsites = (filter: 'all' | 'wordpress' | 'other'): Website[] => {
+  // Filter websites by industry for dashboard
+  const getIndustryFilteredWebsites = (): Website[] => {
+    if (selectedIndustry === 'all') {
+      return websites;
+    }
+    return websites.filter(website => website.industry === selectedIndustry);
+  };
+
+  // WPScan handlers - fixed function name
+  const getWpscanFilteredWebsites = (filter: 'all' | 'wordpress' | 'other'): Website[] => {
     return websites.filter(website => {
       switch (filter) {
         case 'wordpress':
@@ -318,7 +330,7 @@ function App() {
       return;
     }
 
-    const filteredWebsites = getFilteredWebsites(wpscanFilter);
+    const filteredWebsites = getWpscanFilteredWebsites(wpscanFilter);
 
     if (filteredWebsites.length === 0) {
       addError('No websites match the selected filter');
@@ -368,6 +380,248 @@ function App() {
     setIsWpscanning(false);
   };
 
+  // Handle website card click to show detail view
+  const handleWebsiteClick = (website: Website) => {
+    setSelectedWebsite(website);
+  };
+
+  // Handle back from detail view
+  const handleBackToDashboard = () => {
+    setSelectedWebsite(null);
+  };
+
+  // Main render function with proper conditional rendering
+  const renderContent = () => {
+    // If a website is selected, show the detail view
+    if (selectedWebsite) {
+      return (
+        <WebsiteDetail
+          website={selectedWebsite}
+          onBack={handleBackToDashboard}
+          onCheck={checkWebsite}
+          onTakeScreenshot={takeScreenshot}
+          onToggleFavorite={toggleFavorite}
+          onRemove={removeWebsite}
+          loading={loading}
+          screenshotLoading={screenshotLoading}
+        />
+      );
+    }
+
+    // Otherwise, show the regular tabbed interface
+    return (
+      <>
+        <nav className="tabs">
+          <button
+            className={activeTab === "dashboard" ? "active" : ""}
+            onClick={() => setActiveTab("dashboard")}
+          >
+            Dashboard
+          </button>
+          <button
+            className={activeTab === "add" ? "active" : ""}
+            onClick={() => setActiveTab("add")}
+          >
+            Add Website
+          </button>
+          <button
+            className={activeTab === "wpscan" ? "active" : ""}
+            onClick={() => setActiveTab("wpscan")}
+          >
+            Scan Website
+          </button>
+        </nav>
+
+        {activeTab === "dashboard" && renderDashboard()}
+        {activeTab === "add" && renderAddWebsite()}
+        {activeTab === "wpscan" && renderWpscan()}
+
+        <div className="cloud-sync-options">
+          <h3>Cloud Sync</h3>
+          <select
+            value={cloudProvider || ''}
+            onChange={(e) => setCloudProvider(e.target.value || null)}
+          >
+            <option value="">None</option>
+            <option value="google-drive">Google Drive</option>
+            <option value="dropbox">Dropbox</option>
+            <option value="one-drive">OneDrive</option>
+          </select>
+
+          {cloudProvider && (
+            <div>
+              <label>Sync Frequency:</label>
+              <select
+                value={syncFrequency}
+                onChange={(e) => setSyncFrequency(Number(e.target.value))}
+              >
+                <option value={0}>Manual</option>
+                <option value={1}>Every hour</option>
+                <option value={24}>Daily</option>
+                <option value={168}>Weekly</option>
+              </select>
+
+              <button className="scan-btn" onClick={handleCloudSync}>
+                Sync Now
+              </button>
+            </div>
+          )}
+        </div>
+
+        <button className="scan-btn" onClick={handleExport}>Export Settings</button>
+      </>
+    );
+  };
+
+  const renderDashboard = () => (
+    <div className="dashboard">
+      <div className="dashboard-header">
+        <h2>Website Monitoring</h2>
+        <div className="actions">
+          <button
+            className="scan-btn"
+            onClick={checkAllWebsites}
+            disabled={loading || websites.length === 0 || screenshotProgress !== null}
+          >
+            {loading ? "Checking..." : "Check All Websites"}
+          </button>
+          <button
+            className="scan-btn screenshot-btn"
+            onClick={takeAllScreenshots}
+            disabled={screenshotLoading || websites.length === 0 || loading}
+          >
+            {screenshotLoading ? "Capturing..." : "Screenshot All"}
+          </button>
+          {screenshotProgress && !screenshotProgress.is_complete && (
+            <button
+              className="scan-btn cancel-btn"
+              onClick={cancelScreenshots}
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Industry Filter */}
+      <IndustryFilter
+        selectedIndustry={selectedIndustry}
+        onIndustryChange={setSelectedIndustry}
+      />
+      
+      {/* Progress Indicator */}
+      {screenshotProgress && (
+        <div className="progress-container">
+          <div className="progress-bar">
+            <div className="progress-header">
+              <h3>Taking Screenshots...</h3>
+              <span className="progress-counter">
+                {screenshotProgress.completed} of {screenshotProgress.total} completed
+              </span>
+            </div>
+            <div className="progress-bar-track">
+              <div
+                className="progress-bar-fill"
+                style={{
+                  width: `${(screenshotProgress.completed / screenshotProgress.total) * 100}%`
+                }}
+              ></div>
+            </div>
+            {screenshotProgress.current_website && !screenshotProgress.is_complete && (
+              <div className="current-item">
+                Currently processing: <strong>{screenshotProgress.current_website}</strong>
+              </div>
+            )}
+            {screenshotProgress.is_complete && (
+              <div className="completion-message">
+                ✅ All screenshots completed!
+                {screenshotProgress.errors.length > 0 && (
+                  <span className="error-count">
+                    ({screenshotProgress.errors.length} errors)
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {websites.length === 0 ? (
+        <div className="empty-state">
+          <p>No websites added yet. Add your first website to monitor.</p>
+          <button
+            className="scan-btn"
+            onClick={() => setActiveTab("add")}
+          >
+            Add Website
+          </button>
+        </div>
+      ) : (
+        <div className="results-grid">
+          {getIndustryFilteredWebsites().map(website => (
+            <WebsiteCard
+              key={website.id}
+              website={website}
+              onCheck={checkWebsite}
+              onRemove={removeWebsite}
+              onToggleFavorite={toggleFavorite}
+              onTakeScreenshot={takeScreenshot}
+              onWebsiteClick={handleWebsiteClick}
+              loading={loading}
+              screenshotLoading={screenshotLoading}
+              isProcessing={website.isProcessing || false}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderAddWebsite = () => (
+    <div className="add-website">
+      <h2>Add New Website</h2>
+      <AddWebsiteForm onAdd={addWebsite} loading={loading} />
+
+      <div className="industries-info">
+        <h3>Industry Categorization</h3>
+        <p>
+          Categorize your websites by industry to filter and analyze performance
+          metrics specific to different sectors.
+        </p>
+        <ul>
+          <li><strong>E-Commerce:</strong> Focus on conversion metrics and page load times</li>
+          <li><strong>Finance:</strong> Emphasize security and compliance indicators</li>
+          <li><strong>Healthcare:</strong> Prioritize accessibility and reliability</li>
+          <li><strong>Education:</strong> Focus on content delivery and engagement</li>
+          <li><strong>Technology:</strong> Monitor advanced performance metrics</li>
+        </ul>
+      </div>
+    </div>
+  );
+
+  const renderWpscan = () => (
+    <div className="wpscan-section">
+      <h2>Website Security Scanner</h2>
+      <p>Scan your websites for security vulnerabilities using WPScan API</p>
+
+      <div className="wpscan-content">
+        <WpscanSettings
+          onApiKeyChange={setWpscanApiKey}
+          onFilterChange={setWpscanFilter}
+          onScanSelected={handleWpscanSelected}
+          onScanAll={handleWpscanAll}
+          websites={websites}
+          isScanning={isWpscanning}
+        />
+
+        <WpscanResults
+          results={wpscanResults}
+          websites={websites}
+        />
+      </div>
+    </div>
+  );
+
   return (
     <main className="main-container">
       <NavigationBar
@@ -394,7 +648,7 @@ function App() {
                   {error.timestamp.toLocaleTimeString()}
                 </span>
               </div>
-              <button 
+              <button
                 className="error-close"
                 onClick={() => setErrors(prev => prev.filter(e => e !== error))}
                 aria-label="Close error"
@@ -406,202 +660,7 @@ function App() {
         </div>
       )}
 
-      <nav className="tabs">
-        <button
-          className={activeTab === "dashboard" ? "active" : ""}
-          onClick={() => setActiveTab("dashboard")}
-        >
-          Dashboard
-        </button>
-        <button
-          className={activeTab === "add" ? "active" : ""}
-          onClick={() => setActiveTab("add")}
-        >
-          Add Website
-        </button>
-        <button
-          className={activeTab === "wpscan" ? "active" : ""}
-          onClick={() => setActiveTab("wpscan")}
-        >
-          Scan Website
-        </button>
-      </nav>
-
-      {activeTab === "dashboard" && (
-        <div className="dashboard">
-          <div className="dashboard-header">
-            <h2>Website Monitoring</h2>
-            <div className="actions">
-              <button
-                className="scan-btn"
-                onClick={checkAllWebsites}
-                disabled={loading || websites.length === 0 || screenshotProgress !== null}
-              >
-                {loading ? "Checking..." : "Check All Websites"}
-              </button>
-              <button
-                className="scan-btn screenshot-btn"
-                onClick={takeAllScreenshots}
-                disabled={screenshotLoading || websites.length === 0 || loading}
-              >
-                {screenshotLoading ? "Capturing..." : "Screenshot All"}
-              </button>
-              {screenshotProgress && !screenshotProgress.is_complete && (
-                <button
-                  className="scan-btn cancel-btn"
-                  onClick={cancelScreenshots}
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Progress Indicator */}
-          {screenshotProgress && (
-            <div className="progress-container">
-              <div className="progress-bar">
-                <div className="progress-header">
-                  <h3>Taking Screenshots...</h3>
-                  <span className="progress-counter">
-                    {screenshotProgress.completed} of {screenshotProgress.total} completed
-                  </span>
-                </div>
-                <div className="progress-bar-track">
-                  <div
-                    className="progress-bar-fill"
-                    style={{
-                      width: `${(screenshotProgress.completed / screenshotProgress.total) * 100}%`
-                    }}
-                  ></div>
-                </div>
-                {screenshotProgress.current_website && !screenshotProgress.is_complete && (
-                  <div className="current-item">
-                    Currently processing: <strong>{screenshotProgress.current_website}</strong>
-                  </div>
-                )}
-                {screenshotProgress.is_complete && (
-                  <div className="completion-message">
-                    ✅ All screenshots completed!
-                    {screenshotProgress.errors.length > 0 && (
-                      <span className="error-count">
-                        ({screenshotProgress.errors.length} errors)
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {websites.length === 0 ? (
-            <div className="empty-state">
-              <p>No websites added yet. Add your first website to monitor.</p>
-              <button
-                className="scan-btn"
-                onClick={() => setActiveTab("add")}
-              >
-                Add Website
-              </button>
-            </div>
-          ) : (
-            <div className="results-grid">
-              {websites.map(website => (
-                <WebsiteCard
-                  key={website.id}
-                  website={website}
-                  onCheck={checkWebsite}
-                  onRemove={removeWebsite}
-                  onToggleFavorite={toggleFavorite}
-                  onTakeScreenshot={takeScreenshot}
-                  loading={loading}
-                  screenshotLoading={screenshotLoading}
-                  isProcessing={website.isProcessing || false}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === "add" && (
-        <div className="add-website">
-          <h2>Add New Website</h2>
-          <AddWebsiteForm onAdd={addWebsite} loading={loading} />
-
-          <div className="industries-info">
-            <h3>Industry Categorization</h3>
-            <p>
-              Categorize your websites by industry to filter and analyze performance
-              metrics specific to different sectors.
-            </p>
-            <ul>
-              <li><strong>E-Commerce:</strong> Focus on conversion metrics and page load times</li>
-              <li><strong>Finance:</strong> Emphasize security and compliance indicators</li>
-              <li><strong>Healthcare:</strong> Prioritize accessibility and reliability</li>
-              <li><strong>Education:</strong> Focus on content delivery and engagement</li>
-              <li><strong>Technology:</strong> Monitor advanced performance metrics</li>
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {activeTab === "wpscan" && (
-        <div className="wpscan-section">
-          <h2>Website Security Scanner</h2>
-          <p>Scan your websites for security vulnerabilities using WPScan API</p>
-          
-          <div className="wpscan-content">
-            <WpscanSettings
-              onApiKeyChange={setWpscanApiKey}
-              onFilterChange={setWpscanFilter}
-              onScanSelected={handleWpscanSelected}
-              onScanAll={handleWpscanAll}
-              websites={websites}
-              isScanning={isWpscanning}
-            />
-            
-            <WpscanResults
-              results={wpscanResults}
-              websites={websites}
-            />
-          </div>
-        </div>
-      )}
-
-      <div className="cloud-sync-options">
-        <h3>Cloud Sync</h3>
-        <select
-          value={cloudProvider || ''}
-          onChange={(e) => setCloudProvider(e.target.value || null)}
-        >
-          <option value="">None</option>
-          <option value="google-drive">Google Drive</option>
-          <option value="dropbox">Dropbox</option>
-          <option value="one-drive">OneDrive</option>
-        </select>
-
-        {cloudProvider && (
-          <div>
-            <label>Sync Frequency:</label>
-            <select
-              value={syncFrequency}
-              onChange={(e) => setSyncFrequency(Number(e.target.value))}
-            >
-              <option value={0}>Manual</option>
-              <option value={1}>Every hour</option>
-              <option value={24}>Daily</option>
-              <option value={168}>Weekly</option>
-            </select>
-
-            <button className="scan-btn" onClick={handleCloudSync}>
-              Sync Now
-            </button>
-          </div>
-        )}
-      </div>
-
-      <button className="scan-btn" onClick={handleExport}>Export Settings</button>
+      {renderContent()}
     </main>
   );
 }
