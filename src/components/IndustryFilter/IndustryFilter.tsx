@@ -1,6 +1,4 @@
-"use client"
-
-// components/IndustryFilter/IndustryFilter.tsx
+// components/IndustryFilter/IndustryFilter.tsx - FIXED
 import type React from "react"
 import type { Industry } from "../../models/website"
 import "./IndustryFilter.css"
@@ -45,4 +43,4 @@ const IndustryFilter: React.FC<IndustryFilterProps> = ({ selectedIndustry, onInd
   )
 }
 
-export default IndustryFilter
+export default IndustryFilter // Make sure this exports IndustryFilter, not IndustryFilterPills

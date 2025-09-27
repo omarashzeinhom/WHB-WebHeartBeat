@@ -1,4 +1,4 @@
-// components/IndustrySelector/IndustrySelector.tsx
+// components/IndustrySelector/IndustrySelector.tsx - FIXED
 import React from 'react';
 import { Industry } from '../../models/website';
 import './IndustrySelector.css';
@@ -31,11 +31,37 @@ const IndustrySelector: React.FC<IndustrySelectorProps> = ({
 
   const currentIndustryData = industries.find(ind => ind.value === currentIndustry) || industries[0];
 
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsOpen(!isOpen);
+  };
+
+  const handleIndustrySelect = (industry: Industry, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onIndustryChange(industry);
+    setIsOpen(false);
+  };
+
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = () => {
+      setIsOpen(false);
+    };
+
+    if (isOpen) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [isOpen]);
+
   return (
-    <div className="industry-selector">
+    <div className="industry-selector" onClick={(e) => e.stopPropagation()}>
       <button
         className={`industry-btn ${compact ? 'compact' : ''} ${isOpen ? 'open' : ''}`}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleButtonClick}
         title={`Change industry: ${currentIndustryData.label}`}
       >
         <span className="industry-icon">{currentIndustryData.icon}</span>
@@ -44,15 +70,12 @@ const IndustrySelector: React.FC<IndustrySelectorProps> = ({
       </button>
       
       {isOpen && (
-        <div className="industry-dropdown">
+        <div className="industry-dropdown" onClick={(e) => e.stopPropagation()}>
           {industries.map((industry) => (
             <button
               key={industry.value}
               className={`industry-option ${currentIndustry === industry.value ? 'selected' : ''}`}
-              onClick={() => {
-                onIndustryChange(industry.value);
-                setIsOpen(false);
-              }}
+              onClick={(e) => handleIndustrySelect(industry.value, e)}
             >
               <span className="industry-icon">{industry.icon}</span>
               <span className="industry-label">{industry.label}</span>

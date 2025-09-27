@@ -22,7 +22,6 @@ interface WebsiteCardProps {
   screenshotLoading: boolean;
   isProcessing?: boolean;
   onWebsiteClick: (website: Website) => void;
-
 }
 
 // Define industries array with proper typing
@@ -55,20 +54,39 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
     return status === 200 ? '#28a745' : '#dc3545';
   };
 
-  const openWebsite = () => {
-    window.open(website.url, '_blank');
-  };
-
   const handleIndustryChange = (industry: Industry) => {
     onIndustryChange(website.id, industry);
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger card click if clicking on interactive elements
+    const target = e.target as HTMLElement;
+    if (target.closest('.action-btn') || target.closest('.industry-selector') || target.closest('.favorite-btn')) {
+      return;
+    }
+    onWebsiteClick(website);
+  };
 
+  // FIX: Make handleActionClick accept functions with optional event parameter
+  const handleActionClick = (handler: (e?: React.MouseEvent) => void) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handler(e); // Pass the event to the handler if it needs it
+  };
+
+  // FIX: Remove the event parameter from openWebsite since handleActionClick already stops propagation
+  const openWebsite = () => {
+    window.open(website.url, '_blank');
+  };
+
+  // Alternative: If you want to keep the event parameter, use this version:
+  // const openWebsite = (e?: React.MouseEvent) => {
+  //   window.open(website.url, '_blank');
+  // };
 
   return (
     <div
       className={`website-card ${website.favorite ? 'favorite' : ''}`}
-      onClick={() => onWebsiteClick(website)}
+      onClick={handleCardClick}
       style={{ cursor: 'pointer' }}
     >
       {/* Screenshot preview */}
@@ -88,17 +106,16 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
           Status: {website.status || 'N/A'}
         </div>
         <div className="header-actions">
-          <IndustrySelector
-            currentIndustry={website.industry}
-            onIndustryChange={handleIndustryChange}
-            compact={true}
-          />
+          <div onClick={(e) => e.stopPropagation()}>
+            <IndustrySelector
+              currentIndustry={website.industry}
+              onIndustryChange={handleIndustryChange}
+              compact={true}
+            />
+          </div>
           <button
             className="favorite-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleFavorite(website.id);
-            }}
+            onClick={handleActionClick(() => onToggleFavorite(website.id))}
             title={website.favorite ? 'Remove from favorites' : 'Add to favorites'}
           >
             <img
@@ -117,13 +134,11 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
         </span>
       </div>
 
-
-
-      {/* Action buttons with icons */}
+      {/* Action buttons */}
       <div className="card-actions">
         <button
           className="action-btn"
-          onClick={() => onTakeScreenshot(website.id)}
+          onClick={handleActionClick(() => onTakeScreenshot(website.id))}
           disabled={screenshotLoading}
           title="Take Screenshot"
         >
@@ -133,7 +148,7 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
 
         <button
           className="action-btn"
-          onClick={() => onCheck(website.id)}
+          onClick={handleActionClick(() => onCheck(website.id))}
           disabled={loading}
           title="Check Status"
         >
@@ -143,24 +158,23 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
 
         <button
           className="action-btn"
-          onClick={() => onRemove(website.id)}
+          onClick={handleActionClick(() => onRemove(website.id))}
           title="Delete Website"
         >
           <img src={DeleteIcon} alt="Delete" />
           <span>Delete</span>
         </button>
 
+        {/* FIXED: Now this should work */}
         <button
           className="action-btn"
-          onClick={openWebsite}
+          onClick={handleActionClick(openWebsite)}
           title="Open Website"
         >
           <img src={OpenLinkIcon} alt="Open Link" />
           <span>Open Link</span>
         </button>
       </div>
-
-
     </div>
   );
 };
