@@ -16,8 +16,8 @@ interface NavigationBarProps {
   onSearchResultClick?: (result: any) => void;
 }
 
-const NavigationBar: React.FC<NavigationBarProps> = ({ 
-  initialTheme = 'light', 
+const NavigationBar: React.FC<NavigationBarProps> = ({
+  initialTheme = 'light',
   onThemeChange,
   onSearch,
   searchResults = [],
@@ -81,7 +81,12 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
               <img src={MenuIcon} alt="Menu" />
             </button>
             <div className="logo">
-              <img src={Logo} alt="WebHeartbeat" />
+              <Link to="/" onClick={toggleMenu}>
+
+                <img src={Logo} alt="WebHeartbeat" />
+
+              </Link>
+
             </div>
           </div>
 

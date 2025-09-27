@@ -97,7 +97,7 @@ body {
   padding: 1.25em; /* 20px */
   display: flex;
   flex-direction: column;
-  max-width: 87.5em; /* 1400px */
+  max-width: 95.5em; /* 1400px */
   margin: 0 auto;
   min-height: 100vh;
 }

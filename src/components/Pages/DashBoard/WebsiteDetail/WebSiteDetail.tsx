@@ -1,18 +1,41 @@
-// components/WebsiteDetail/WebsiteDetail.tsx
-import React from 'react';
-import { Website } from '../../../../models/website';
-import './WebsiteDetail.css';
+import type React from "react"
+import {
+  ArrowLeft,
+  Star,
+  Trash2,
+  RefreshCw,
+  Camera,
+  ExternalLink,
+  Globe,
+  Shield,
+  Zap,
+  Clock,
+  AlertTriangle,
+  Activity,
+  Users,
+  Puzzle,
+  Eye,
+  TrendingUp,
+  ShoppingCart,
+  Heart,
+  Building,
+  GraduationCap,
+  Newspaper,
+  Plane,
+} from "lucide-react"
+import type { Website } from "../../../../models/website"
+import "./WebsiteDetail.css"
 
 interface WebsiteDetailProps {
-  website?: Website | null;
-  websiteId?: number;
-  onBack: () => void;
-  onCheck: (id: number) => void;
-  onTakeScreenshot: (id: number) => void;
-  onToggleFavorite: (id: number) => void;
-  onRemove: (id: number) => void;
-  loading: boolean;
-  screenshotLoading: boolean;
+  website?: Website | null
+  websiteId?: number
+  onBack: () => void
+  onCheck: (id: number) => void
+  onTakeScreenshot: (id: number) => void
+  onToggleFavorite: (id: number) => void
+  onRemove: (id: number) => void
+  loading: boolean
+  screenshotLoading: boolean
 }
 
 const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
@@ -31,62 +54,62 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
       <div className="website-detail">
         <div className="detail-header">
           <button className="back-btn" onClick={onBack}>
-            ← Back to Dashboard
+            <ArrowLeft size={16} style={{ marginRight: "0.5rem" }} />
+            Back to Dashboard
           </button>
         </div>
         <div className="detail-content">
           <div className="website-not-found">
+            <Activity size={24} style={{ marginBottom: "1rem" }} />
             <p>Website not found or loading...</p>
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   const getStatusColor = (status: number | null) => {
-    if (!status) return 'gray';
-    if (status >= 200 && status < 300) return 'green';
-    if (status >= 300 && status < 400) return 'blue';
-    if (status >= 400 && status < 500) return 'orange';
-    return 'red';
-  };
+    if (!status) return "gray"
+    if (status >= 200 && status < 300) return "green"
+    if (status >= 300 && status < 400) return "blue"
+    if (status >= 400 && status < 500) return "orange"
+    return "red"
+  }
 
   const getIndustryIcon = (industry: string) => {
-    const icons: { [key: string]: string } = {
-      ecommerce: '🛒',
-      finance: '💰',
-      healthcare: '🏥',
-      education: '🎓',
-      technology: '💻',
-      media: '📰',
-      travel: '✈️',
-      government: '🏛️',
-      nonprofit: '🤝',
-      general: '🌍',
-    };
-    return icons[industry] || '🌐';
-  };
+    const icons: { [key: string]: React.ComponentType<any> } = {
+      ecommerce: ShoppingCart,
+      finance: TrendingUp,
+      healthcare: Heart,
+      education: GraduationCap,
+      technology: Zap,
+      media: Newspaper,
+      travel: Plane,
+      government: Building,
+      nonprofit: Users,
+      general: Globe,
+    }
+    const IconComponent = icons[industry] || Globe
+    return <IconComponent size={16} style={{ marginRight: "0.5rem" }} />
+  }
 
   return (
     <div className="website-detail">
       <div className="detail-header">
         <button className="back-btn" onClick={onBack}>
-          ← Back to Dashboard
+          <ArrowLeft size={16} style={{ marginRight: "0.5rem" }} />
+          Back to Dashboard
         </button>
         <div className="header-actions">
           <button
-            className={`favorite-btn ${website.favorite ? 'active' : ''}`}
+            className={`favorite-btn ${website.favorite ? "active" : ""}`}
             onClick={() => onToggleFavorite(website.id)}
-            title={website.favorite ? 'Remove from favorites' : 'Add to favorites'}
+            title={website.favorite ? "Remove from favorites" : "Add to favorites"}
           >
-            {website.favorite ? '★' : '☆'}
+            <Star size={16} fill={website.favorite ? "currentColor" : "none"} />
           </button>
-          <button
-            className="remove-btn"
-            onClick={() => onRemove(website.id)}
-            title="Remove website"
-          >
-            🗑️
+          <button className="remove-btn" onClick={() => onRemove(website.id)} title="Remove website">
+            <Trash2 size={16} />
           </button>
         </div>
       </div>
@@ -95,14 +118,14 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
         <div className="website-info">
           <div className="website-header">
             <h1>{website.name}</h1>
-            <span className={`status status-${getStatusColor(website.status)}`}>
-              {website.status || 'Unknown'}
-            </span>
+            <span className={`status status-${getStatusColor(website.status)}`}>{website.status || "Unknown"}</span>
           </div>
 
           <div className="website-url">
             <a href={website.url} target="_blank" rel="noopener noreferrer">
+              <Globe size={16} style={{ marginRight: "0.5rem" }} />
               {website.url}
+              <ExternalLink size={12} style={{ marginLeft: "0.5rem" }} />
             </a>
           </div>
 
@@ -112,12 +135,14 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
             </span>
             {website.lastChecked && (
               <span className="last-checked">
+                <Clock size={14} style={{ marginRight: "0.5rem" }} />
                 Last checked: {new Date(website.lastChecked).toLocaleString()}
               </span>
             )}
             {website.isWordPress !== undefined && (
               <span className="wordpress-tag">
-                {website.isWordPress ? 'WordPress' : 'Non-WordPress'}
+                <Puzzle size={14} style={{ marginRight: "0.5rem" }} />
+                {website.isWordPress ? "WordPress" : "Non-WordPress"}
               </span>
             )}
           </div>
@@ -137,34 +162,45 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
         </div>
 
         <div className="website-actions">
-          <button
-            className="action-btn primary"
-            onClick={() => onCheck(website.id)}
-            disabled={loading}
-          >
-            {loading ? 'Checking...' : 'Check Status'}
+          <button className="action-btn primary" onClick={() => onCheck(website.id)} disabled={loading}>
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} style={{ marginRight: "0.5rem" }} />
+            {loading ? "Checking..." : "Check Status"}
           </button>
           <button
             className="action-btn secondary"
             onClick={() => onTakeScreenshot(website.id)}
             disabled={screenshotLoading}
           >
-            {screenshotLoading ? 'Capturing...' : 'Take Screenshot'}
+            <Camera size={16} className={screenshotLoading ? "animate-spin" : ""} style={{ marginRight: "0.5rem" }} />
+            {screenshotLoading ? "Capturing..." : "Take Screenshot"}
           </button>
         </div>
 
         {website.screenshot && (
           <div className="screenshot-section">
-            <h3>Screenshot</h3>
-            <div className="screenshot-container">
-              <img src={website.screenshot} alt={`Screenshot of ${website.name}`} />
+            <h3>
+              <Eye size={18} style={{ marginRight: "0.5rem" }} />
+              Website Preview
+            </h3>
+            <div className="screenshot-container-horizontal">
+              <img
+                src={website.screenshot || "/placeholder.svg"}
+                alt={`Screenshot of ${website.name}`}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.src = "/generic-website-screenshot.png"
+                }}
+              />
             </div>
           </div>
         )}
 
         {website.vitals && (
           <div className="vitals-section">
-            <h3>Performance Metrics</h3>
+            <h3>
+              <Activity size={18} style={{ marginRight: "0.5rem" }} />
+              Performance Metrics
+            </h3>
             <div className="vitals-grid">
               <div className="vital-item">
                 <span className="vital-label">LCP</span>
@@ -192,24 +228,39 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
 
         {website.wpscanResult && (
           <div className="security-section">
-            <h3>Security Scan Results</h3>
+            <h3>
+              <Shield size={18} style={{ marginRight: "0.5rem" }} />
+              Security Scan Results
+            </h3>
             <div className="scan-summary">
               <div className="scan-item">
-                <span>Vulnerabilities:</span>
-                <span className={`count ${website.wpscanResult.vulnerabilities.length > 0 ? 'danger' : 'safe'}`}>
+                <span>
+                  <AlertTriangle size={14} style={{ marginRight: "0.5rem" }} />
+                  Vulnerabilities:
+                </span>
+                <span className={`count ${website.wpscanResult.vulnerabilities.length > 0 ? "danger" : "safe"}`}>
                   {website.wpscanResult.vulnerabilities.length}
                 </span>
               </div>
               <div className="scan-item">
-                <span>Plugins:</span>
+                <span>
+                  <Puzzle size={14} style={{ marginRight: "0.5rem" }} />
+                  Plugins:
+                </span>
                 <span className="count">{website.wpscanResult.plugins.length}</span>
               </div>
               <div className="scan-item">
-                <span>Themes:</span>
+                <span>
+                  <Eye size={14} style={{ marginRight: "0.5rem" }} />
+                  Themes:
+                </span>
                 <span className="count">{website.wpscanResult.themes.length}</span>
               </div>
               <div className="scan-item">
-                <span>Users:</span>
+                <span>
+                  <Users size={14} style={{ marginRight: "0.5rem" }} />
+                  Users:
+                </span>
                 <span className="count">{website.wpscanResult.users.length}</span>
               </div>
             </div>
@@ -217,7 +268,7 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default WebsiteDetail;
+export default WebsiteDetail

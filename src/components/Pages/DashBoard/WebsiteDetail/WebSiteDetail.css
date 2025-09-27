@@ -22,7 +22,7 @@
   color: var(--color-white);
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family: 'Lato', sans-serif;
+  font-family: "Lato", sans-serif;
   font-size: 0.875em;
   font-weight: 600;
 }
@@ -37,7 +37,8 @@
   gap: 0.5rem;
 }
 
-.favorite-btn, .remove-btn {
+.favorite-btn,
+.remove-btn {
   padding: 0.75em;
   border: 1px solid var(--color-border);
   border-radius: 0.5em;
@@ -48,7 +49,8 @@
   color: var(--color-white);
 }
 
-.favorite-btn:hover, .remove-btn:hover {
+.favorite-btn:hover,
+.remove-btn:hover {
   background: var(--color-ui-background);
   transform: translateY(-0.125em);
 }
@@ -84,7 +86,7 @@
   font-size: var(--font-size-h1-desktop);
   line-height: var(--line-height-h1-desktop);
   font-weight: 700;
-  font-family: 'Red Hat Display', sans-serif;
+  font-family: "Red Hat Display", sans-serif;
 }
 
 .status {
@@ -92,14 +94,29 @@
   border-radius: 1.25em;
   font-size: 0.875em;
   font-weight: 600;
-  font-family: 'Lato', sans-serif;
+  font-family: "Lato", sans-serif;
 }
 
-.status-green { background: #d4edda; color: #155724; }
-.status-blue { background: #d1ecf1; color: #0c5460; }
-.status-orange { background: #fff3cd; color: #856404; }
-.status-red { background: #f8d7da; color: #721c24; }
-.status-gray { background: #e2e3e5; color: #383d41; }
+.status-green {
+  background: #d4edda;
+  color: #155724;
+}
+.status-blue {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+.status-orange {
+  background: #fff3cd;
+  color: #856404;
+}
+.status-red {
+  background: #f8d7da;
+  color: #721c24;
+}
+.status-gray {
+  background: #e2e3e5;
+  color: #383d41;
+}
 
 .website-url {
   margin-bottom: 1rem;
@@ -109,7 +126,7 @@
   color: var(--color-accent-red);
   text-decoration: none;
   font-size: 1.1em;
-  font-family: 'Lato', sans-serif;
+  font-family: "Lato", sans-serif;
   font-weight: 600;
 }
 
@@ -124,24 +141,28 @@
   margin-bottom: 1.5rem;
 }
 
-.industry-tag, .last-checked, .wordpress-tag {
+.industry-tag,
+.last-checked,
+.wordpress-tag {
   padding: 0.375em 1em;
   border-radius: 1.25em;
   background: var(--color-background);
   border: 1px solid var(--color-border);
   font-size: 0.875em;
-  font-family: 'Lato', sans-serif;
+  font-family: "Lato", sans-serif;
   font-weight: 500;
 }
 
-.website-description, .website-tags {
+.website-description,
+.website-tags {
   margin-bottom: 1.5rem;
 }
 
-.website-description h3, .website-tags h3 {
+.website-description h3,
+.website-tags h3 {
   margin-bottom: 0.5rem;
   color: var(--color-white);
-  font-family: 'Red Hat Display', sans-serif;
+  font-family: "Red Hat Display", sans-serif;
   font-size: var(--font-size-h3-desktop);
   line-height: var(--line-height-h3-desktop);
   font-weight: 600;
@@ -150,7 +171,7 @@
 .website-description p {
   color: var(--color-text-secondary);
   line-height: 1.6;
-  font-family: 'Lato', sans-serif;
+  font-family: "Lato", sans-serif;
 }
 
 .tags {
@@ -165,7 +186,7 @@
   color: white;
   border-radius: 1.25em;
   font-size: 0.875em;
-  font-family: 'Lato', sans-serif;
+  font-family: "Lato", sans-serif;
   font-weight: 600;
 }
 
@@ -179,7 +200,7 @@
   padding: 0.75em 1.5em;
   border: none;
   border-radius: 0.5em;
-  font-family: 'Lato', sans-serif;
+  font-family: "Lato", sans-serif;
   font-size: 0.875em;
   font-weight: 600;
   cursor: pointer;
@@ -209,21 +230,14 @@
   box-shadow: none;
 }
 
-.screenshot-section, .vitals-section, .security-section {
+.screenshot-section,
+.vitals-section,
+.security-section {
   background: var(--color-ui-background);
   padding: 1.5625em;
   border-radius: 0.75em;
   border: 1px solid var(--color-border);
   backdrop-filter: blur(10px);
-}
-
-.screenshot-section h3, .vitals-section h3, .security-section h3 {
-  color: var(--color-white);
-  margin-bottom: 1rem;
-  font-family: 'Red Hat Display', sans-serif;
-  font-size: var(--font-size-h3-desktop);
-  line-height: var(--line-height-h3-desktop);
-  font-weight: 600;
 }
 
 .screenshot-container {
@@ -235,6 +249,27 @@
   height: auto;
   border-radius: 0.5em;
   border: 1px solid var(--color-border);
+}
+
+/* Added horizontal screenshot container with 16:10 aspect ratio */
+.screenshot-container-horizontal {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: var(--color-background);
+  border-radius: 0.75em;
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  box-shadow: 0 0.25em 1em rgba(0, 0, 0, 0.1);
+}
+
+.screenshot-container-horizontal img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: top;
+  display: block;
 }
 
 .vitals-grid {
@@ -255,7 +290,7 @@
   display: block;
   color: var(--color-text-secondary);
   font-size: 0.875em;
-  font-family: 'Lato', sans-serif;
+  font-family: "Lato", sans-serif;
   margin-bottom: 0.5rem;
 }
 
@@ -263,7 +298,7 @@
   display: block;
   color: var(--color-white);
   font-size: 1.25em;
-  font-family: 'Red Hat Display', sans-serif;
+  font-family: "Red Hat Display", sans-serif;
   font-weight: 600;
 }
 
@@ -285,11 +320,11 @@
 
 .scan-item span:first-child {
   color: var(--color-text-secondary);
-  font-family: 'Lato', sans-serif;
+  font-family: "Lato", sans-serif;
 }
 
 .count {
-  font-family: 'Red Hat Display', sans-serif;
+  font-family: "Red Hat Display", sans-serif;
   font-weight: 600;
   padding: 0.25em 0.75em;
   border-radius: 1.25em;
@@ -306,37 +341,66 @@
   color: #155724;
 }
 
+/* Enhanced website-not-found styling */
+.website-not-found {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--color-text-secondary);
+}
+
+.website-not-found p {
+  font-family: "Lato", sans-serif;
+  font-size: 1.1em;
+}
+
+/* Added animation for loading spinner */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
 @media (max-width: 768px) {
   .website-detail {
     padding: 0.625em;
   }
-  
+
   .detail-header {
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
   }
-  
+
   .website-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-  
+
   .website-header h1 {
     font-size: var(--font-size-h1-mobile);
     line-height: var(--line-height-h1-mobile);
   }
-  
+
   .website-actions {
     flex-direction: column;
   }
-  
-  .vitals-grid, .scan-summary {
+
+  .vitals-grid,
+  .scan-summary {
     grid-template-columns: 1fr;
   }
-  
-  .screenshot-section h3, .vitals-section h3, .security-section h3 {
+
+  .screenshot-section h3,
+  .vitals-section h3,
+  .security-section h3 {
     font-size: var(--font-size-h3-mobile);
     line-height: var(--line-height-h3-mobile);
   }

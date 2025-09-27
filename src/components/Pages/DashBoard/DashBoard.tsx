@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { listen } from '@tauri-apps/api/event';
 import { Website, WpscanResult, Industry } from "../../../models/website";
 import { TauriService } from "../../../services/TauriService";
-import AddWebsiteForm from "../../AddWebsiteForm/AddWebsiteForm";
 import ExportStatusPopup from "./ExportStatusPopup/ExportStatusPopup";
 import IndustryFilter from "./IndustryFilter/IndustryFilter";
 import WebsiteCard from "./WebsiteCard/WebsiteCard";
@@ -29,7 +29,7 @@ function DashBoard() {
   const [websites, setWebsites] = useState<Website[]>([]);
   const [loading, setLoading] = useState(false);
   const [screenshotLoading, setScreenshotLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'add' | 'wpscan'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'wpscan'>('dashboard');
   const [cloudProvider, setCloudProvider] = useState<string | null>(null);
   const [syncFrequency, setSyncFrequency] = useState<number>(0);
   const [screenshotProgress, setScreenshotProgress] = useState<ScreenshotProgress | null>(null);
@@ -53,6 +53,7 @@ function DashBoard() {
     exportTime: new Date(),
   });
 
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadWebsites();
@@ -127,27 +128,6 @@ function DashBoard() {
       await TauriService.saveWebsites(websitesToSave);
     } catch (error) {
       console.error("Failed to save websites:", error);
-    }
-  };
-
-  const addWebsite = (url: string, industry: Industry = 'general') => {
-    try {
-      const websiteData: Website = {
-        id: Date.now(),
-        url,
-        name: new URL(url).hostname,
-        vitals: null,
-        status: null,
-        lastChecked: null,
-        industry: industry,
-        favorite: false,
-        screenshot: null
-      };
-
-      setWebsites([...websites, websiteData]);
-    } catch (error) {
-      console.error("Invalid URL:", error);
-      addError("Invalid URL provided");
     }
   };
 
@@ -271,16 +251,13 @@ function DashBoard() {
     ));
   };
 
-
-  // Fix the typo in getIndustryFilteredWebsites function
   const getIndustryFilteredWebsites = (): Website[] => {
     if (selectedIndustry === 'all') {
-      return websites; // Fix: was 'website' but should be 'websites'
+      return websites;
     }
-    return websites.filter(website => website.industry === selectedIndustry); // Fix: was 'website' but should be 'websites'
+    return websites.filter(website => website.industry === selectedIndustry);
   };
 
-  // WPScan handlers - fixed function name
   const getWpscanFilteredWebsites = (filter: 'all' | 'wordpress' | 'other'): Website[] => {
     return websites.filter(website => {
       switch (filter) {
@@ -349,7 +326,7 @@ function DashBoard() {
     }
     setIsWpscanning(false);
   };
-  // Update your handleExport function
+
   const handleExport = async () => {
     try {
       const data = JSON.stringify(websites, null, 2);
@@ -363,7 +340,6 @@ function DashBoard() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      // Show export status popup
       setExportStatus({
         exportedWebsites: websites,
         exportDestination: 'Local File',
@@ -378,47 +354,21 @@ function DashBoard() {
     }
   };
 
-  /**
-   * 
-   * @param website   // Add cloud export function
-    const handleCloudExport = async (provider: string) => {
-      try {
-        // Your cloud export logic here
-        setExportStatus({
-          exportedWebsites: websites,
-          exportDestination: provider,
-          exportFormat: 'json',
-          exportTime: new Date(),
-        });
-        setIsExportPopupOpen(true);
-      } catch (error) {
-        console.error('Cloud export failed:', error);
-        addError(`Failed to export to ${provider}`);
-      }
-    };
-   */
-  // Handle website card click to show detail view
   const handleWebsiteClick = (website: Website) => {
     setSelectedWebsite(website);
   };
 
-  // Handle back from detail view
   const handleBackToDashboard = () => {
     setSelectedWebsite(null);
   };
 
-
-  // In your App component, add the industry change handler
-  // Fix the handleIndustryChange function in App.tsx
   const handleIndustryChange = async (id: number, industry: Industry) => {
-    // Update frontend state immediately
     setWebsites(prevWebsites =>
       prevWebsites.map(website =>
         website.id === id ? { ...website, industry } : website
       )
     );
 
-    // Also update in backend
     try {
       await TauriService.updateWebsiteIndustry(id, industry);
     } catch (error) {
@@ -427,9 +377,12 @@ function DashBoard() {
     }
   };
 
-  // Main render function with proper conditional rendering
+  const navigateToAddWebsite = () => {
+    navigate({ to: '/add-website' });
+  };
+
+  // Main render function
   const renderContent = () => {
-    // If a website is selected, show the detail view
     if (selectedWebsite) {
       return (
         <WebsiteDetail
@@ -445,7 +398,6 @@ function DashBoard() {
       );
     }
 
-    // Otherwise, show the regular tabbed interface
     return (
       <>
         <nav className="tabs">
@@ -456,8 +408,8 @@ function DashBoard() {
             Dashboard
           </button>
           <button
-            className={activeTab === "add" ? "active" : ""}
-            onClick={() => setActiveTab("add")}
+            className="add-website-tab"
+            onClick={navigateToAddWebsite}
           >
             Add Website
           </button>
@@ -470,7 +422,6 @@ function DashBoard() {
         </nav>
 
         {activeTab === "dashboard" && renderDashboard()}
-        {activeTab === "add" && renderAddWebsite()}
         {activeTab === "wpscan" && renderWpscan()}
 
         <div className="cloud-sync-options">
@@ -531,6 +482,12 @@ function DashBoard() {
           >
             {screenshotLoading ? "Capturing..." : "Screenshot All"}
           </button>
+          <button
+            className="scan-btn add-website-btn"
+            onClick={navigateToAddWebsite}
+          >
+            Add Website
+          </button>
           {screenshotProgress && !screenshotProgress.is_complete && (
             <button
               className="scan-btn cancel-btn"
@@ -590,7 +547,7 @@ function DashBoard() {
           <p>No websites added yet. Add your first website to monitor.</p>
           <button
             className="scan-btn"
-            onClick={() => setActiveTab("add")}
+            onClick={navigateToAddWebsite}
           >
             Add Website
           </button>
@@ -614,29 +571,6 @@ function DashBoard() {
           ))}
         </div>
       )}
-
-    </div>
-  );
-
-  const renderAddWebsite = () => (
-    <div className="add-website">
-      <h2>Add New Website</h2>
-      <AddWebsiteForm onAdd={addWebsite} loading={loading} />
-
-      <div className="industries-info">
-        <h3>Industry Categorization</h3>
-        <p>
-          Categorize your websites by industry to filter and analyze performance
-          metrics specific to different sectors.
-        </p>
-        <ul>
-          <li><strong>E-Commerce:</strong> Focus on conversion metrics and page load times</li>
-          <li><strong>Finance:</strong> Emphasize security and compliance indicators</li>
-          <li><strong>Healthcare:</strong> Prioritize accessibility and reliability</li>
-          <li><strong>Education:</strong> Focus on content delivery and engagement</li>
-          <li><strong>Technology:</strong> Monitor advanced performance metrics</li>
-        </ul>
-      </div>
     </div>
   );
 
@@ -664,7 +598,7 @@ function DashBoard() {
   );
 
   return (
-    <main >
+    <main>
       <div className="main-container">
         {/* Error Display */}
         {errors.length > 0 && (
@@ -704,7 +638,6 @@ function DashBoard() {
           totalWebsites={websites.length}
         />
       </div>
-
     </main>
   );
 }
