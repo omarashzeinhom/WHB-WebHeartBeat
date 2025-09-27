@@ -460,6 +460,7 @@ function App() {
 
         <div className="cloud-sync-options">
           <h3>Cloud Sync</h3>
+
           <select
             value={cloudProvider || ''}
             onChange={(e) => setCloudProvider(e.target.value || null)}
@@ -499,7 +500,6 @@ function App() {
     <div className="dashboard">
       <div className="dashboard-header">
         <h2>Website Monitoring</h2>
-        <EarningsCard totalExpense={0} amount={"569,000"} profitPercentage={0} progressPercentage={120} />
 
         <div className="actions">
           <button
@@ -599,6 +599,9 @@ function App() {
           ))}
         </div>
       )}
+      <hr className="py-5" />
+      <EarningsCard totalExpense={0} amount={"569,000"} profitPercentage={52} progressPercentage={120} />
+
     </div>
   );
 
