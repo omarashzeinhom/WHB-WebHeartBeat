@@ -4,7 +4,8 @@ import { Website } from '../../../../models/website';
 import './WebsiteDetail.css';
 
 interface WebsiteDetailProps {
-  website: Website;
+  website?: Website | null;
+  websiteId?: number;
   onBack: () => void;
   onCheck: (id: number) => void;
   onTakeScreenshot: (id: number) => void;
@@ -24,6 +25,24 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
   loading,
   screenshotLoading,
 }) => {
+  // Early return if website is not available
+  if (!website) {
+    return (
+      <div className="website-detail">
+        <div className="detail-header">
+          <button className="back-btn" onClick={onBack}>
+            ← Back to Dashboard
+          </button>
+        </div>
+        <div className="detail-content">
+          <div className="website-not-found">
+            <p>Website not found or loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const getStatusColor = (status: number | null) => {
     if (!status) return 'gray';
     if (status >= 200 && status < 300) return 'green';
@@ -102,8 +121,6 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
               </span>
             )}
           </div>
-
-         
 
           {website.tags && website.tags.length > 0 && (
             <div className="website-tags">

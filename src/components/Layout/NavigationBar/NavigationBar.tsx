@@ -1,24 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from '@tanstack/react-router';
 import './NavigationBar.css';
 
-// Import your SVG assets
 import SearchIcon from '../../../assets/icons/search.svg';
 import MenuIcon from '../../../assets/icons/menu.svg';
 import CloseIcon from '../../../assets/icons/close.svg';
 import ThemeToggleIcon from '../../../assets/icons/theme-toggle.svg';
 import Logo from '../../../assets/WHB.svg';
 
-// Update NavigationBar.tsx
 interface NavigationBarProps {
   initialTheme?: 'light' | 'dark';
   onThemeChange?: (theme: 'light' | 'dark') => void;
   onSearch?: (query: string) => void;
   searchResults?: any[];
   onSearchResultClick?: (result: any) => void;
-  onNavigate?: (tab: 'dashboard' | 'add' | 'wpscan' | 'settings') => void; // Add this
-  activeTab?: string; // Add this to highlight current tab
 }
-
 
 const NavigationBar: React.FC<NavigationBarProps> = ({ 
   initialTheme = 'light', 
@@ -31,6 +27,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [theme, setTheme] = useState<'light' | 'dark'>(initialTheme);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -61,10 +58,11 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
     onSearchResultClick?.(result);
     setShowSearchResults(false);
     setSearchQuery('');
+    // Navigate to website detail
+    navigate({ to: '/websites/$id', params: { id: result.id.toString() } });
   };
 
   const handleSearchBlur = () => {
-    // Delay hiding results to allow clicks on them
     setTimeout(() => setShowSearchResults(false), 200);
   };
 
@@ -139,9 +137,9 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
             </button>
           </div>
           <nav className="side-nav-links">
-            <a href="#" className="side-nav-link">Dashboard</a>
-            <a href="#" className="side-nav-link">Websites</a>
-            <a href="#" className="side-nav-link">Add New Website</a>
+            <Link to="/" className="side-nav-link" onClick={toggleMenu}>Dashboard</Link>
+            <Link to="/add-website" className="side-nav-link" onClick={toggleMenu}>Add New Website</Link>
+            <Link to="/wpscan" className="side-nav-link" onClick={toggleMenu}>Security Scan</Link>
             <a href="#" className="side-nav-link">Analytics</a>
             <a href="#" className="side-nav-link">Settings</a>
             <a href="#" className="side-nav-link">Export</a>

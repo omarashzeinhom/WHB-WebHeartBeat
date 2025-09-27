@@ -9,7 +9,6 @@ import {
   Globe, 
   Calendar,
   Clock,
-  Download,
   ExternalLink
 } from 'lucide-react';
 import { Website } from '../../../../models/website';

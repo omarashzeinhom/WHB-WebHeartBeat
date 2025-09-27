@@ -140,6 +140,8 @@ We're planning to implement these cloud save options:
 
 ## 🚧 Development Notes
 
+1. [Usage with yarn workspaces](https://tanstack.com/router/latest/docs/framework/react/installation#usage-with-yarn-workspaces)
+
 ### Package Configuration
 
 ```json

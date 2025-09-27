@@ -32,8 +32,6 @@ function DashBoard() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'add' | 'wpscan'>('dashboard');
   const [cloudProvider, setCloudProvider] = useState<string | null>(null);
   const [syncFrequency, setSyncFrequency] = useState<number>(0);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [searchResults, setSearchResults] = useState<Website[]>([]);
   const [screenshotProgress, setScreenshotProgress] = useState<ScreenshotProgress | null>(null);
   const [wpscanApiKey, setWpscanApiKey] = useState<string>('');
   const [wpscanFilter, setWpscanFilter] = useState<'all' | 'wordpress' | 'other'>('all');
@@ -271,30 +269,6 @@ function DashBoard() {
     setWebsites(websites.map(w =>
       w.id === id ? { ...w, favorite: !w.favorite } : w
     ));
-  };
-
-
-  const handleSearch = (query: string) => {
-    if (!query.trim()) {
-      setSearchResults([]);
-      return;
-    }
-
-    const filtered = websites.filter(website =>
-      website.name.toLowerCase().includes(query.toLowerCase()) ||
-      website.url.toLowerCase().includes(query.toLowerCase())
-    );
-
-    setSearchResults(filtered);
-  };
-
-  const handleSearchResultClick = () => {
-    setActiveTab('dashboard');
-  };
-
-  const handleThemeChange = (newTheme: 'light' | 'dark') => {
-    setTheme(newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
   };
 
 

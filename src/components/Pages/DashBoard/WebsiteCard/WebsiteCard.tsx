@@ -67,21 +67,16 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
     onWebsiteClick(website);
   };
 
-  // FIX: Make handleActionClick accept functions with optional event parameter
-  const handleActionClick = (handler: (e?: React.MouseEvent) => void) => (e: React.MouseEvent) => {
+  // FIXED: Simplified handleActionClick
+  const handleActionClick = (handler: Function) => (e: React.MouseEvent) => {
     e.stopPropagation();
-    handler(e); // Pass the event to the handler if it needs it
+    handler();
   };
 
-  // FIX: Remove the event parameter from openWebsite since handleActionClick already stops propagation
+  // FIXED: openWebsite now works correctly
   const openWebsite = () => {
     window.open(website.url, '_blank');
   };
-
-  // Alternative: If you want to keep the event parameter, use this version:
-  // const openWebsite = (e?: React.MouseEvent) => {
-  //   window.open(website.url, '_blank');
-  // };
 
   return (
     <div
@@ -165,7 +160,7 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
           <span>Delete</span>
         </button>
 
-        {/* FIXED: Now this should work */}
+        {/* FIXED: This should now work correctly */}
         <button
           className="action-btn"
           onClick={handleActionClick(openWebsite)}
