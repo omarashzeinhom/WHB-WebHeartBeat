@@ -1,179 +1,249 @@
-/* Hide scrollbar for pills container */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-.font-display {
-  font-family: var(--font-display);
-}
-
-.font-body {
-  font-family: var(--font-body);
-}
-
 /* components/IndustryFilter/IndustryFilter.css */
 .industry-filter {
   margin-bottom: 2rem;
-  padding: 1.5625em;
+  padding: 1.5rem;
   background: var(--color-ui-background);
   border: 1px solid var(--color-border);
-  border-radius: 0.75em;
+  border-radius: 12px;
   backdrop-filter: blur(10px);
 }
 
-.industry-filter h3 {
-  margin: 0 0 1rem 0;
+.industry-filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.industry-filter-title {
+  margin: 0;
   color: var(--color-white);
-  font-size: var(--font-size-h3-desktop);
-  line-height: var(--line-height-h3-desktop);
+  font-size: 1.25rem;
   font-weight: 600;
   font-family: "Red Hat Display", sans-serif;
 }
 
-.industry-buttons {
-  /* Made horizontal scrollable instead of wrapping */
+.industry-filter-controls {
   display: flex;
-  flex-wrap: nowrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.industry-clear-all {
+  background: none;
+  border: none;
+  color: var(--color-accent-red);
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  font-family: "Lato", sans-serif;
+}
+
+.industry-clear-all:hover {
+  background: rgba(231, 76, 60, 0.1);
+}
+
+.industry-selected-status {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  font-family: "Lato", sans-serif;
+}
+
+.industry-scroll-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.industry-scroll-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-ui-background);
+  border: 1px solid var(--color-border);
+  color: var(--color-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.industry-scroll-btn:hover {
+  background: var(--color-background);
+  transform: translateY(-50%) scale(1.1);
+  border-color: var(--color-text-secondary);
+}
+
+.industry-scroll-left {
+  left: 8px;
+}
+
+.industry-scroll-right {
+  right: 8px;
+}
+
+.industry-pills-container {
+  display: flex;
   gap: 0.5rem;
   overflow-x: auto;
   scroll-behavior: smooth;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
-  padding-bottom: 0.5rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 0.5rem 0;
+  cursor: grab;
+  user-select: none;
+  min-height: 60px;
+  align-items: center;
 }
 
-/* Hide scrollbar for webkit browsers */
-.industry-buttons::-webkit-scrollbar {
+.industry-pills-container:active {
+  cursor: grabbing;
+}
+
+.industry-pills-container::-webkit-scrollbar {
   display: none;
 }
 
-.industry-btn {
+.industry-pill {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75em 1.5em;
+  padding: 0.75rem 1.25rem;
   border: 1px solid var(--color-border);
-  border-radius: 0.5em;
+  border-radius: 8px;
   background: var(--color-background);
   color: var(--color-white);
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 0.875em;
+  font-size: 0.875rem;
   font-family: "Lato", sans-serif;
-  font-weight: 600;
-  /* Prevent shrinking in horizontal layout */
+  font-weight: 500;
   flex-shrink: 0;
   white-space: nowrap;
+  min-height: 44px;
 }
 
-.industry-btn:hover {
+.industry-pill:hover {
   background: var(--color-ui-background);
-  transform: translateY(-0.125em);
+  border-color: var(--color-text-secondary);
+  transform: translateY(-1px);
 }
 
-.industry-btn.active {
+.industry-pill-active {
   background: var(--color-accent-red-gradient);
   color: white;
   border-color: transparent;
-  box-shadow: 0 0.5em 1.5625em rgba(231, 76, 60, 0.3);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+  transform: translateY(-1px);
 }
 
-.industry-icon {
-  font-size: 1.1em;
+.industry-pill-active:hover {
+  background: var(--color-accent-red-gradient);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4);
 }
 
-.industry-label {
-  white-space: nowrap;
-}
-
-/* Added styles for filter popup button */
-.filter-popup-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75em 1.5em;
-  border: 2px dashed var(--color-border);
-  border-radius: 0.5em;
-  background: transparent;
-  color: var(--color-white);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.875em;
-  font-family: "Lato", sans-serif;
-  font-weight: 600;
+.industry-pill-icon {
   flex-shrink: 0;
+}
+
+.industry-pill-label {
   white-space: nowrap;
-  opacity: 0.7;
 }
 
-.filter-popup-btn:hover {
+.industry-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.industry-scroll-container:hover .industry-fade {
   opacity: 1;
-  border-color: var(--color-accent-red-gradient);
-  color: var(--color-accent-red-gradient);
-  transform: translateY(-0.125em);
 }
 
-/* Added styles for scroll buttons */
-.scroll-btn {
-  background: var(--color-ui-background);
-  border: 1px solid var(--color-border);
-  color: var(--color-white);
+.industry-fade-left {
+  left: 0;
+  background: linear-gradient(to right, var(--color-ui-background) 0%, transparent 100%);
 }
 
-.scroll-btn:hover {
-  background: var(--color-background);
+.industry-fade-right {
+  right: 0;
+  background: linear-gradient(to left, var(--color-ui-background) 0%, transparent 100%);
 }
 
-/* Added styles for clear all button */
-.clear-all-btn {
-  color: var(--color-accent-red-gradient);
-}
-
-.filter-title {
-  color: var(--color-white);
-  font-size: var(--font-size-h3-desktop);
-  line-height: var(--line-height-h3-desktop);
-  font-weight: 600;
-  font-family: "Red Hat Display", sans-serif;
-  margin: 0;
-}
-
-/* Added fade indicators */
-.fade-indicator {
-  z-index: 5;
-}
-
+/* Mobile responsiveness */
 @media (max-width: 768px) {
-  .industry-buttons {
-    /* Keep horizontal scroll on mobile */
-    justify-content: flex-start;
+  .industry-filter {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
   }
+  
+  .industry-filter-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .industry-filter-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .industry-filter-title {
+    font-size: 1.125rem;
+  }
+  
+  .industry-pill {
+    padding: 0.625rem 1rem;
+    font-size: 0.8rem;
+    min-height: 40px;
+  }
+  
+  .industry-scroll-btn {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .industry-pill-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
 
-  .industry-btn {
-    min-width: 120px;
-    justify-content: center;
-    font-size: 0.8em;
-    padding: 0.625em 1em;
+/* Enhanced touch experience for mobile */
+@media (hover: none) {
+  .industry-scroll-btn {
+    display: none;
   }
+  
+  .industry-fade {
+    opacity: 1;
+  }
+  
+  .industry-pills-container {
+    padding-bottom: 0.5rem;
+  }
+}
 
-  .filter-popup-btn {
-    min-width: 100px;
-    font-size: 0.8em;
-    padding: 0.625em 1em;
-  }
+/* Tauri-specific optimizations */
+.industry-filter {
+  -webkit-app-region: no-drag;
+}
 
-  .industry-filter h3 {
-    font-size: var(--font-size-h3-mobile);
-    line-height: var(--line-height-h3-mobile);
-  }
-
-  .filter-title {
-    font-size: var(--font-size-h3-mobile);
-    line-height: var(--line-height-h3-mobile);
-  }
+.industry-pill {
+  -webkit-user-select: none;
+  user-select: none;
 }
