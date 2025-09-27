@@ -1,14 +1,14 @@
 import React from 'react';
 import './WebsiteCard.css';
-import { Industry, Website } from '../../models/website';
+import { Industry, Website } from '../../../../models/website';
 
 // Import SVG icons
-import ScreenshotIcon from '../../assets/icons/screenshot-icon.svg';
-import StatusIcon from '../../assets/icons/status-icon.svg';
-import DeleteIcon from '../../assets/icons/delete-icon.svg';
-import OpenLinkIcon from '../../assets/icons/open-link-icon.svg';
-import FavoriteIcon from '../../assets/icons/favorite-icon.svg';
-import FavoriteFilledIcon from "../../assets/icons/favorite-filled-icon.svg";
+import ScreenshotIcon from '../../../../assets/icons/screenshot-icon.svg';
+import StatusIcon from '../../../../assets/icons/status-icon.svg';
+import DeleteIcon from '../../../../assets/icons/delete-icon.svg';
+import OpenLinkIcon from '../../../../assets/icons/open-link-icon.svg';
+import FavoriteIcon from '../../../../assets/icons/favorite-icon.svg';
+import FavoriteFilledIcon from "../../../../assets/icons/favorite-filled-icon.svg";
 import IndustrySelector from '../IndustrySelector/IndustrySelector';
 
 interface WebsiteCardProps {

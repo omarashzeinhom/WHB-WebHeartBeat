@@ -1,6 +1,6 @@
 // components/IndustryFilter/IndustryFilter.tsx - FIXED
 import type React from "react"
-import type { Industry } from "../../models/website"
+import type { Industry } from "../../../../models/website"
 import "./IndustryFilter.css"
 
 interface IndustryFilterProps {

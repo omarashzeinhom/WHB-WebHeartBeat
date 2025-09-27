@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import './NavigationBar.css';
 
 // Import your SVG assets
-import SearchIcon from '../../assets/icons/search.svg';
-import MenuIcon from '../../assets/icons/menu.svg';
-import CloseIcon from '../../assets/icons/close.svg';
-import ThemeToggleIcon from '../../assets/icons/theme-toggle.svg';
-import Logo from '../../assets/WHB.svg';
+import SearchIcon from '../../../assets/icons/search.svg';
+import MenuIcon from '../../../assets/icons/menu.svg';
+import CloseIcon from '../../../assets/icons/close.svg';
+import ThemeToggleIcon from '../../../assets/icons/theme-toggle.svg';
+import Logo from '../../../assets/WHB.svg';
 
 // Update NavigationBar.tsx
 interface NavigationBarProps {

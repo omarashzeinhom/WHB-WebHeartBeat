@@ -1,0 +1,274 @@
+/* components/Pages/Dashboard/WpscanResults/WpscanResults.css */
+.wpscan-results {
+  padding: 20px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-style: italic;
+}
+
+.website-scan-result {
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border-light);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+[data-theme="dark"] .website-scan-result {
+  background: var(--card-bg-dark);
+  border-color: var(--card-border-dark);
+}
+
+.scan-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.scan-header h4 {
+  margin: 0;
+  color: var(--text-primary-light);
+}
+
+[data-theme="dark"] .scan-header h4 {
+  color: var(--text-primary-dark);
+}
+
+.scan-status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.scan-status.wordpress {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.scan-status.non-wordpress {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.scan-date {
+  color: var(--text-secondary-light);
+  font-size: 0.9rem;
+}
+
+[data-theme="dark"] .scan-date {
+  color: var(--text-secondary-dark);
+}
+
+.vulnerabilities-summary {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  min-width: 60px;
+}
+
+.summary-item.critical {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.summary-item.high {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.summary-item.medium {
+  background: #fff8e1;
+  color: #f9a825;
+}
+
+.summary-item.low {
+  background: #f1f8e9;
+  color: #558b2f;
+}
+
+.summary-item .count {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.summary-item .label {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.plugins-section,
+.themes-section,
+.users-section,
+.direct-vulnerabilities {
+  margin-bottom: 20px;
+}
+
+.plugins-section h5,
+.themes-section h5,
+.users-section h5,
+.direct-vulnerabilities h5 {
+  margin: 0 0 10px 0;
+  color: var(--text-primary-light);
+  font-size: 1.1rem;
+}
+
+[data-theme="dark"] .plugins-section h5,
+[data-theme="dark"] .themes-section h5,
+[data-theme="dark"] .users-section h5,
+[data-theme="dark"] .direct-vulnerabilities h5 {
+  color: var(--text-primary-dark);
+}
+
+.plugin-item,
+.theme-item {
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 10px;
+}
+
+[data-theme="dark"] .plugin-item,
+[data-theme="dark"] .theme-item {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.plugin-header,
+.theme-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.plugin-name,
+.theme-name {
+  font-weight: 600;
+  color: var(--text-primary-light);
+}
+
+[data-theme="dark"] .plugin-name,
+[data-theme="dark"] .theme-name {
+  color: var(--text-primary-dark);
+}
+
+.plugin-version,
+.theme-version {
+  color: var(--text-secondary-light);
+  font-size: 0.9rem;
+}
+
+[data-theme="dark"] .plugin-version,
+[data-theme="dark"] .theme-version {
+  color: var(--text-secondary-dark);
+}
+
+.vuln-count {
+  font-size: 0.9rem;
+  color: var(--text-secondary-light);
+  margin-bottom: 10px;
+  display: block;
+}
+
+[data-theme="dark"] .vuln-count {
+  color: var(--text-secondary-dark);
+}
+
+.vulnerability-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+  margin-bottom: 5px;
+}
+
+[data-theme="dark"] .vulnerability-item {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.severity-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.severity-critical { background: #ffcdd2; color: #b71c1c; }
+.severity-high { background: #ffccbc; color: #d84315; }
+.severity-medium { background: #ffe0b2; color: #ef6c00; }
+.severity-low { background: #c8e6c9; color: #2e7d32; }
+
+.vuln-title {
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--text-primary-light);
+}
+
+[data-theme="dark"] .vuln-title {
+  color: var(--text-primary-dark);
+}
+
+.cve-badge {
+  background: #e3f2fd;
+  color: #1565c0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-family: monospace;
+}
+
+.users-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.user-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 6px;
+}
+
+[data-theme="dark"] .user-item {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.user-login {
+  font-weight: 600;
+  color: var(--text-primary-light);
+}
+
+[data-theme="dark"] .user-login {
+  color: var(--text-primary-dark);
+}
+
+.user-display-name {
+  color: var(--text-secondary-light);
+  font-size: 0.9rem;
+}
+
+[data-theme="dark"] .user-display-name {
+  color: var(--text-secondary-dark);
+}

@@ -94,9 +94,10 @@ body {
 
 .main-container {
   margin: 0;
+  padding: 1.25em; /* 20px */
   display: flex;
   flex-direction: column;
-  max-width: 100%; /* 1400px */
+  max-width: 87.5em; /* 1400px */
   margin: 0 auto;
   min-height: 100vh;
 }
@@ -531,13 +532,10 @@ h6 {
   }
   
   .main-container {
+    padding: 0.625em; /* 10px */
   }
   
   .header h1 {
     font-size: 2rem;
   }
-}
-
-.py-5{
-  padding-top: 5%;
 }

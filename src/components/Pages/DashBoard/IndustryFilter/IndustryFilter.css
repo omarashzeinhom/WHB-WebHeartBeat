@@ -1,3 +1,21 @@
+/* Hide scrollbar for pills container */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
 /* components/IndustryFilter/IndustryFilter.css */
 .industry-filter {
   margin-bottom: 2rem;

@@ -1,6 +1,6 @@
 // components/WebsiteDetail/WebsiteDetail.tsx
 import React from 'react';
-import { Website } from '../../models/website';
+import { Website } from '../../../../models/website';
 import './WebsiteDetail.css';
 
 interface WebsiteDetailProps {

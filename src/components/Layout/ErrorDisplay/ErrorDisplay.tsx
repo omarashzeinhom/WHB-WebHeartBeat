@@ -1,7 +1,7 @@
 // components/ErrorDisplay/ErrorDisplay.tsx
 import React from 'react';
 import './ErrorDisplay.css';
-import { AppError } from '../../hooks/useErrorHandler';
+import { AppError } from '../../../hooks/useErrorHandler';
 
 interface ErrorDisplayProps {
   errors: AppError[];

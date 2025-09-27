@@ -1,16 +1,10 @@
 import { useState, useEffect } from "react";
 import "./App.css";
-import AddWebsiteForm from "./components/AddWebsiteForm/AddWebsiteForm";
-import WebsiteCard from "./components/WebsiteCard/WebsiteCard";
-import WpscanSettings from "./components/WpscanSettings/WpscanSettings";
-import WpscanResults from "./components/WpscanResults/WpscanResults";
-import NavigationBar from "./components/NavigationBar/NavigationBar";
-import IndustryFilter from "./components/IndustryFilter/IndustryFilter";
+import IndustryFilter from "./components/Pages/DashBoard/IndustryFilter/IndustryFilter";
 import { TauriService } from "./services/TauriService";
 import { Industry, Website, WpscanResult } from "./models/website";
 import { listen } from '@tauri-apps/api/event';
-import WebsiteDetail from "./components/WebsiteDetail/WebSiteDetail";
-import { EarningsCard } from "./components/InterFaceCard/InterFaceCard";
+import { WebsiteDetail, WebsiteCard, AddWebsiteForm, WpscanSettings, WpscanResults, NavigationBar, ExportStatusPopup } from "./components";
 
 interface ScreenshotProgress {
   total: number;
@@ -44,6 +38,19 @@ function App() {
   const [errors, setErrors] = useState<AppError[]>([]);
   const [selectedIndustry, setSelectedIndustry] = useState<Industry | 'all'>('all');
   const [selectedWebsite, setSelectedWebsite] = useState<Website | null>(null);
+  const [isExportPopupOpen, setIsExportPopupOpen] = useState(false);
+  const [exportStatus, setExportStatus] = useState<{
+    exportedWebsites: Website[];
+    exportDestination: string;
+    exportFormat: 'json' | 'csv' | 'pdf';
+    exportTime: Date;
+  }>({
+    exportedWebsites: [],
+    exportDestination: 'Local File',
+    exportFormat: 'json',
+    exportTime: new Date(),
+  });
+
 
   useEffect(() => {
     loadWebsites();
@@ -262,23 +269,6 @@ function App() {
     ));
   };
 
-  const handleExport = async () => {
-    try {
-      const data = JSON.stringify(websites, null, 2);
-      const blob = new Blob([data], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'website_settings.json';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Export failed:', error);
-      addError('Export failed');
-    }
-  };
 
   const handleSearch = (query: string) => {
     if (!query.trim()) {
@@ -381,7 +371,54 @@ function App() {
     }
     setIsWpscanning(false);
   };
+  // Update your handleExport function
+  const handleExport = async () => {
+    try {
+      const data = JSON.stringify(websites, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'website_settings.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
+      // Show export status popup
+      setExportStatus({
+        exportedWebsites: websites,
+        exportDestination: 'Local File',
+        exportFormat: 'json',
+        exportTime: new Date(),
+      });
+      setIsExportPopupOpen(true);
+
+    } catch (error) {
+      console.error('Export failed:', error);
+      addError('Export failed');
+    }
+  };
+
+  /**
+   * 
+   * @param website   // Add cloud export function
+    const handleCloudExport = async (provider: string) => {
+      try {
+        // Your cloud export logic here
+        setExportStatus({
+          exportedWebsites: websites,
+          exportDestination: provider,
+          exportFormat: 'json',
+          exportTime: new Date(),
+        });
+        setIsExportPopupOpen(true);
+      } catch (error) {
+        console.error('Cloud export failed:', error);
+        addError(`Failed to export to ${provider}`);
+      }
+    };
+   */
   // Handle website card click to show detail view
   const handleWebsiteClick = (website: Website) => {
     setSelectedWebsite(website);
@@ -599,8 +636,6 @@ function App() {
           ))}
         </div>
       )}
-      <hr className="py-5" />
-      <EarningsCard totalExpense={0} amount={"569,000"} profitPercentage={52} progressPercentage={120} />
 
     </div>
   );
@@ -651,7 +686,7 @@ function App() {
   );
 
   return (
-    <main className="main-container">
+    <main >
       <NavigationBar
         initialTheme={theme}
         onThemeChange={handleThemeChange}
@@ -659,35 +694,46 @@ function App() {
         searchResults={searchResults}
         onSearchResultClick={handleSearchResultClick}
       />
-
-      {/* Error Display */}
-      {errors.length > 0 && (
-        <div className="error-container">
-          {errors.map((error, index) => (
-            <div key={`${error.timestamp.getTime()}-${index}`} className={`error-message error-${error.type}`}>
-              <div className="error-content">
-                <span className="error-icon">
-                  {error.type === 'error' && '❌'}
-                  {error.type === 'warning' && '⚠️'}
-                  {error.type === 'info' && 'ℹ️'}
-                </span>
-                <span className="error-text">{error.message}</span>
-                <span className="error-time">
-                  {error.timestamp.toLocaleTimeString()}
-                </span>
+      <div className="main-container">
+        {/* Error Display */}
+        {errors.length > 0 && (
+          <div className="error-container">
+            {errors.map((error, index) => (
+              <div key={`${error.timestamp.getTime()}-${index}`} className={`error-message error-${error.type}`}>
+                <div className="error-content">
+                  <span className="error-icon">
+                    {error.type === 'error' && '❌'}
+                    {error.type === 'warning' && '⚠️'}
+                    {error.type === 'info' && 'ℹ️'}
+                  </span>
+                  <span className="error-text">{error.message}</span>
+                  <span className="error-time">
+                    {error.timestamp.toLocaleTimeString()}
+                  </span>
+                </div>
+                <button
+                  className="error-close"
+                  onClick={() => setErrors(prev => prev.filter(e => e !== error))}
+                  aria-label="Close error"
+                >
+                  ×
+                </button>
               </div>
-              <button
-                className="error-close"
-                onClick={() => setErrors(prev => prev.filter(e => e !== error))}
-                aria-label="Close error"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-      {renderContent()}
+            ))}
+          </div>
+        )}
+        {renderContent()}
+        <ExportStatusPopup
+          isOpen={isExportPopupOpen}
+          onClose={() => setIsExportPopupOpen(false)}
+          exportedWebsites={exportStatus.exportedWebsites}
+          exportDestination={exportStatus.exportDestination}
+          exportFormat={exportStatus.exportFormat}
+          exportTime={exportStatus.exportTime}
+          totalWebsites={websites.length}
+        />
+      </div>
+
     </main>
   );
 }

@@ -1,6 +1,6 @@
 // components/IndustrySelector/IndustrySelector.tsx - FIXED
 import React from 'react';
-import { Industry } from '../../models/website';
+import { Industry } from '../../../../models/website';
 import './IndustrySelector.css';
 
 interface IndustrySelectorProps {
