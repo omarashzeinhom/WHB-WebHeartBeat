@@ -33,9 +33,15 @@
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .industry-selector-btn.compact {
@@ -56,7 +62,6 @@
   stroke-width: 1.1px;
   max-width: 45px;
   max-height: 45px;
-
 }
 
 .industry-label {
@@ -90,11 +95,16 @@
   backdrop-filter: blur(5px);
   padding: 1rem;
   animation: fadeIn 0.2s ease;
+  box-sizing: border-box;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .industry-selector-popup {
@@ -110,6 +120,7 @@
   backdrop-filter: blur(10px);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: scaleIn 0.2s ease;
+  overflow: hidden;
 }
 
 @keyframes scaleIn {
@@ -198,10 +209,12 @@
   margin: 0 -1rem;
   padding: 0 1rem;
   max-height: 300px;
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
 }
 
 .industries-list::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .industries-list::-webkit-scrollbar-track {
@@ -230,8 +243,9 @@
   cursor: pointer;
   transition: all 0.3s ease;
   border-radius: 8px;
-  font-family: "Lato", sans-serif;
   margin-bottom: 0.25rem;
+  min-height: 52px;
+  box-sizing: border-box;
 }
 
 .industry-option:hover {

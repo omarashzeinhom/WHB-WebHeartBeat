@@ -74,8 +74,9 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
   };
 
   // FIXED: openWebsite now works correctly
-  const openWebsite = () => {
-    window.open(website.url, '_blank');
+  const openWebsite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    window.open(website.url, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -163,7 +164,7 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
         {/* FIXED: This should now work correctly */}
         <button
           className="action-btn"
-          onClick={handleActionClick(openWebsite)}
+          onClick={openWebsite}
           title="Open Website"
         >
           <img src={OpenLinkIcon} alt="Open Link" />
