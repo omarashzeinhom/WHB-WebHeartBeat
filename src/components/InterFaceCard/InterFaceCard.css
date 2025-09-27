@@ -162,8 +162,8 @@
 
 .progress-section {
   position: absolute;
-  bottom: -20px;
-  right: -20px;
+  bottom: -5%;
+  right: 15%;
 }
 
 .progress-container {
