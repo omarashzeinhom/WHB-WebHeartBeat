@@ -119,8 +119,9 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
 
           <div className="nav-right">
             <nav className="nav-links">
-              <a href="#" className="nav-link">Media</a>
-              <a href="#" className="nav-link">Finance</a>
+              <a href="#" className="nav-link">Donate</a>
+              <a href="#" className="nav-link">Go Pro</a>
+              <a href="#" className="nav-link">Contribute</a>
             </nav>
             <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
               <img src={ThemeToggleIcon} alt="Toggle theme" />
