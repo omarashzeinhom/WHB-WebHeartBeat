@@ -125,6 +125,8 @@
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .scan-btn {
@@ -136,6 +138,13 @@
   transition: all 0.2s ease;
   font-size: 0.9rem;
   min-width: 150px;
+  flex: 1;
+  max-width: 200px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .scan-btn.primary {
@@ -146,6 +155,7 @@
 .scan-btn.primary:hover:not(:disabled) {
   background: light-dark(var(--color-primary-dark), var(--color-primary));
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .scan-btn.secondary {
@@ -157,12 +167,26 @@
 .scan-btn.secondary:hover:not(:disabled) {
   background: light-dark(var(--color-hover), var(--color-hover-dark));
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .scan-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
+}
+
+.scan-btn .btn-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.scan-btn .btn-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .api-key-warning {
@@ -175,19 +199,158 @@
   border-left: 4px solid light-dark(var(--color-warning), var(--color-warning-dark));
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
+/* Enhanced Responsive Design */
+@media (max-width: 1024px) {
   .wpscan-settings {
-    padding: 1rem;
+    padding: 1.25rem;
     gap: 1.5rem;
   }
   
   .scan-buttons {
+    gap: 0.75rem;
+  }
+  
+  .scan-btn {
+    min-width: 75px;
+    max-width: 125px;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .wpscan-settings {
+    padding: 1rem;
+    gap: 1.25rem;
+  }
+  
+  .scan-buttons {
     flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
   }
   
   .scan-btn {
     min-width: auto;
+    max-width: 100%;
     width: 100%;
+    padding: 0.85rem 1.5rem;
+    font-size: 0.9rem;
+    flex: none;
+  }
+  
+  .settings-section h3,
+  .filter-section h3,
+  .scan-actions-section h3 {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .wpscan-settings {
+    padding: 0.75rem;
+    gap: 1rem;
+    border-radius: 6px;
+  }
+  
+  .scan-buttons {
+    gap: 0.5rem;
+  }
+  
+  .scan-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 4px;
+  }
+  
+  .scan-btn .btn-icon {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .api-key-input {
+    padding: 0.65rem;
+    padding-right: 2.5rem;
+    font-size: 0.85rem;
+  }
+  
+  .toggle-visibility {
+    right: 0.65rem;
+    font-size: 1.1rem;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 360px) {
+  .wpscan-settings {
+    padding: 0.5rem;
+    gap: 0.75rem;
+  }
+  
+  .scan-btn {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.8rem;
+  }
+  
+  .scan-btn .btn-text {
+    font-size: 0.8rem;
+  }
+}
+
+/* Loading state for scan buttons */
+.scan-btn.loading {
+  position: relative;
+  color: transparent;
+}
+
+.scan-btn.loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Focus states for accessibility */
+.scan-btn:focus-visible {
+  outline: 2px solid light-dark(var(--color-primary), var(--color-primary-dark));
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .scan-btn {
+    border-width: 2px;
+  }
+  
+  .scan-btn.primary {
+    border: 2px solid light-dark(var(--color-primary), var(--color-primary-dark));
+  }
+  
+  .scan-btn.secondary {
+    border: 2px solid light-dark(var(--color-border), var(--color-border-dark));
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .scan-btn {
+    transition: none;
+  }
+  
+  .scan-btn:hover:not(:disabled) {
+    transform: none;
+  }
+  
+  .scan-btn.loading::after {
+    animation: none;
   }
 }

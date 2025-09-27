@@ -477,7 +477,7 @@ function DashBoard() {
           </button>
           <button
             className="scan-btn screenshot-btn"
-            onClick={takeAllScreenshots}
+            //onClick={takeAllScreenshots}
             disabled={screenshotLoading || websites.length === 0 || loading}
           >
             {screenshotLoading ? "Capturing..." : "Screenshot All"}
