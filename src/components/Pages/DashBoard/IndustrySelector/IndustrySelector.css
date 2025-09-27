@@ -53,6 +53,10 @@
 
 .industry-icon {
   flex-shrink: 0;
+  stroke-width: 1.1px;
+  max-width: 45px;
+  max-height: 45px;
+
 }
 
 .industry-label {
