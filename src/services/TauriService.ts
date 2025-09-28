@@ -54,7 +54,6 @@ export class TauriService {
     }
   }
 
-  // Other methods remain the same...
   static async takeBulkScreenshots(): Promise<void> {
     return WebsiteController.takeBulkScreenshots();
   }

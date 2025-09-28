@@ -1,5 +1,4 @@
 /* components/WebsiteCard/WebsiteCard.css - Updated with theme support */
-
 /* Light theme card variables */
 :root {
   --card-bg-light: rgba(255, 255, 255, 0.95);
@@ -245,6 +244,7 @@
 }
 
 /* Project Status Badge */
+/* Project Status Badge */
 .project-status-badge {
   position: absolute;
   top: 12px;
@@ -260,33 +260,175 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  backdrop-filter: blur(5px);
 }
 
 /* HTTP Status Indicator - separate from project status */
 .http-status-indicator {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
   font-weight: 600;
   color: white;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(5px);
 }
 
 /* Project Status Selector */
 .project-status-section {
-  margin: 8px 0;
+  margin: 12px 0 8px 0;
 }
 
 .project-status-selector {
   width: 100%;
-  padding: 6px 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 12px;
-  background: white;
+  padding: 8px 12px;
+  border: 1px solid var(--card-action-border-light);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  background: var(--card-action-bg-light);
+  color: var(--card-text-light);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.project-status-selector:hover {
+  border-color: rgba(231, 56, 39, 0.5);
+  background: var(--card-hover-bg-light);
 }
 
 .project-status-selector:focus {
   outline: none;
-  border-color: #007bff;
+  border-color: rgba(231, 56, 39, 0.8);
+  box-shadow: 0 0 0 2px rgba(231, 56, 39, 0.2);
+}
+
+/* Status label for the selector */
+.status-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--card-text-light);
+  opacity: 0.8;
+}
+
+/* Card header adjustments to accommodate badges */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Ensure proper spacing with the new badges */
+.card-title-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 15px 0;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* Responsive adjustments for the new elements */
+@media (max-width: 768px) {
+  .project-status-badge {
+    top: 10px;
+    left: 10px;
+    padding: 3px 6px;
+    font-size: 9px;
+    max-width: 70px;
+  }
+  
+  .http-status-indicator {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+  }
+  
+  .project-status-selector {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+  
+  .status-label {
+    font-size: 0.75rem;
+  }
+}
+
+/* Dark theme specific adjustments */
+[data-theme="dark"] .project-status-selector {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .project-status-selector:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(231, 56, 39, 0.6);
+}
+
+[data-theme="dark"] .status-label {
+  color: #ffffff;
+}
+
+/* Ensure badges have good contrast in both themes */
+.project-status-badge,
+.http-status-indicator {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Animation for status changes */
+.project-status-badge {
+  transition: all 0.3s ease;
+}
+
+.project-status-badge:hover {
+  transform: scale(1.05);
+}
+
+/* Industry badge alignment */
+.website-industry-badge {
+  font-size: 18px;
+  margin-left: 8px;
+  filter: var(--icon-filter, none);
+}
+
+[data-theme="dark"] .website-industry-badge {
+  --icon-filter: brightness(0) invert(1);
+}
+
+/* Favorite button positioning relative to new badges */
+.favorite-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.favorite-btn:hover {
+  background: var(--card-hover-bg-light);
+  transform: scale(1.1);
+}
+
+.favorite-btn img {
+  width: 20px;
+  height: 20px;
+  filter: var(--icon-filter, none);
+}
+
+[data-theme="dark"] .favorite-btn img {
+  --icon-filter: brightness(0) invert(1);
 }

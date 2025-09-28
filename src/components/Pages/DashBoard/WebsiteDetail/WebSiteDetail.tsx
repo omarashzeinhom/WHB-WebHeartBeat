@@ -25,6 +25,8 @@ import {
 } from "lucide-react"
 import type { Website } from "../../../../models/website"
 import "./WebsiteDetail.css"
+import WebsiteNotes from "../WebSiteNotes/WebSiteNotes"
+import { Link } from '@tanstack/react-router';
 
 interface WebsiteDetailProps {
   website?: Website | null
@@ -34,6 +36,7 @@ interface WebsiteDetailProps {
   onTakeScreenshot: (id: number) => void
   onToggleFavorite: (id: number) => void
   onRemove: (id: number) => void
+  onUpdateWebsite: (id: number, updates: Partial<Website>) => void
   loading: boolean
   screenshotLoading: boolean
 }
@@ -45,6 +48,7 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
   onTakeScreenshot,
   onToggleFavorite,
   onRemove,
+  onUpdateWebsite,
   loading,
   screenshotLoading,
 }) => {
@@ -53,10 +57,11 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
     return (
       <div className="website-detail">
         <div className="detail-header">
-          <button className="back-btn" onClick={onBack}>
+          <Link to="/" className="back-btn">
             <ArrowLeft size={16} style={{ marginRight: "0.5rem" }} />
             Back to Dashboard
-          </button>
+          </Link>
+
         </div>
         <div className="detail-content">
           <div className="website-not-found">
@@ -92,6 +97,10 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
     const IconComponent = icons[industry] || Globe
     return <IconComponent size={16} style={{ marginRight: "0.5rem" }} />
   }
+
+  const handleNotesChange = (updatedNotes: any) => {
+    onUpdateWebsite(website.id, { notes: updatedNotes });
+  };
 
   return (
     <div className="website-detail">
@@ -205,22 +214,27 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
               <div className="vital-item">
                 <span className="vital-label">LCP</span>
                 <span className="vital-value">{website.vitals.lcp}ms</span>
+                <span className="vital-description">Largest Contentful Paint</span>
               </div>
               <div className="vital-item">
                 <span className="vital-label">FID</span>
                 <span className="vital-value">{website.vitals.fid}ms</span>
+                <span className="vital-description">First Input Delay</span>
               </div>
               <div className="vital-item">
                 <span className="vital-label">CLS</span>
                 <span className="vital-value">{website.vitals.cls}</span>
+                <span className="vital-description">Cumulative Layout Shift</span>
               </div>
               <div className="vital-item">
                 <span className="vital-label">FCP</span>
                 <span className="vital-value">{website.vitals.fcp}ms</span>
+                <span className="vital-description">First Contentful Paint</span>
               </div>
               <div className="vital-item">
                 <span className="vital-label">TTFB</span>
                 <span className="vital-value">{website.vitals.ttfb}ms</span>
+                <span className="vital-description">Time To First Byte</span>
               </div>
             </div>
           </div>
@@ -230,7 +244,7 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
           <div className="security-section">
             <h3>
               <Shield size={18} style={{ marginRight: "0.5rem" }} />
-              Security Scan Results
+              WordPress Security Scan Results
             </h3>
             <div className="scan-summary">
               <div className="scan-item">
@@ -264,8 +278,29 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
                 <span className="count">{website.wpscanResult.users.length}</span>
               </div>
             </div>
+
+            {website.wpscanResult.vulnerabilities.length > 0 && (
+              <div className="vulnerabilities-detail">
+                <h4>Security Vulnerabilities Found:</h4>
+                {website.wpscanResult.vulnerabilities.map((vuln, index) => (
+                  <div key={index} className={`vuln-item severity-${vuln.severity}`}>
+                    <strong>{vuln.title}</strong>
+                    <span className="severity">{vuln.severity}</span>
+                    <p>{vuln.description}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
+
+        {/* Notes Section - Fixed placement */}
+        <div className="notes-section">
+          <WebsiteNotes
+            notes={website.notes}
+            onNotesChange={handleNotesChange}
+          />
+        </div>
       </div>
     </div>
   )

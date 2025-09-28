@@ -1,0 +1,210 @@
+.website-notes {
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border-light);
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.notes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.notes-header h3 {
+  margin: 0;
+  color: var(--card-text-light);
+}
+
+.save-btn {
+  background: var(--color-accent-red);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.save-btn:hover {
+  opacity: 0.9;
+}
+
+.notes-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--card-border-light);
+  padding-bottom: 10px;
+}
+
+.notes-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--card-text-light);
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.notes-tabs button.active {
+  opacity: 1;
+  border-color: var(--color-accent-red);
+  background: rgba(231, 56, 39, 0.1);
+}
+
+.notes-tabs button:hover {
+  opacity: 1;
+  background: var(--card-hover-bg-light);
+}
+
+.notes-content {
+  min-height: 400px;
+}
+
+.tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.add-btn {
+  background: var(--color-ui-background-light);
+  border: 1px solid var(--card-border-light);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--card-text-light);
+}
+
+.security-warning {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.security-warning strong {
+  color: #ffc107;
+}
+
+.dns-records, .credentials-list, .vulnerabilities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.dns-record, .credential-item, .vulnerability-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  background: var(--color-ui-background-light);
+  border-radius: 8px;
+  border: 1px solid var(--card-border-light);
+}
+
+.dns-record select, .dns-record input,
+.credential-item input, .vulnerability-item input,
+.credential-item textarea, .vulnerability-item textarea {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid var(--card-border-light);
+  border-radius: 4px;
+  background: var(--card-bg-light);
+  color: var(--card-text-light);
+}
+
+.remove-btn {
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #dc3545;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.general-notes-textarea, .access-notes textarea,
+.security-notes textarea, .report-field textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--card-border-light);
+  border-radius: 8px;
+  background: var(--card-bg-light);
+  color: var(--card-text-light);
+  resize: vertical;
+}
+
+.report-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.report-field label {
+  font-weight: 600;
+  margin-bottom: 5px;
+  display: block;
+  color: var(--card-text-light);
+}
+
+.notes-footer {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--card-border-light);
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+/* Severity indicators */
+.vulnerability-item.severity-critical {
+  border-left: 4px solid #dc3545;
+}
+
+.vulnerability-item.severity-high {
+  border-left: 4px solid #fd7e14;
+}
+
+.vulnerability-item.severity-medium {
+  border-left: 4px solid #ffc107;
+}
+
+.vulnerability-item.severity-low {
+  border-left: 4px solid #28a745;
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .website-notes {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .security-warning {
+  background: rgba(255, 193, 7, 0.05);
+}
+
+[data-theme="dark"] .dns-record, 
+[data-theme="dark"] .credential-item, 
+[data-theme="dark"] .vulnerability-item {
+  background: rgba(255, 255, 255, 0.08);
+}

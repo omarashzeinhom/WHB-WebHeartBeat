@@ -420,7 +420,24 @@ function DashBoard() {
   };
 
 
+  const handleUpdateWebsite = async (id: number, updates: Partial<Website>) => {
+    setWebsites(prevWebsites =>
+      prevWebsites.map(website =>
+        website.id === id ? { ...website, ...updates } : website
+      )
+    );
 
+    try {
+      // Save the updated website to backend
+      const updatedWebsites = websites.map(website =>
+        website.id === id ? { ...website, ...updates } : website
+      );
+      await TauriService.saveWebsites(updatedWebsites);
+    } catch (error) {
+      console.error('Failed to update website:', error);
+      addError('Failed to update website notes');
+    }
+  };
 
   // Main render function
   const renderContent = () => {
@@ -434,6 +451,7 @@ function DashBoard() {
           onToggleFavorite={toggleFavorite}
           onRemove={removeWebsite}
           loading={loading}
+          onUpdateWebsite={handleUpdateWebsite}
           screenshotLoading={screenshotLoading}
         />
       );
