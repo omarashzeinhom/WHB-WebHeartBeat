@@ -1,21 +1,24 @@
-use reqwest;
+// services/back4app_service.rs
 use crate::models::website::Website;
 
 pub struct Back4AppService {
-    application_id: String,
+    app_id: String,
     rest_api_key: String,
+    client: reqwest::Client,
 }
 
 impl Back4AppService {
-    pub fn new(application_id: String, rest_api_key: String) -> Self {
+    pub fn new(app_id: String, rest_api_key: String) -> Self {
         Self {
-            application_id,
+            app_id,
             rest_api_key,
+            client: reqwest::Client::new(),
         }
     }
 
-    pub async fn save_website(&self, website: Website) -> Result<(), String> {
-        // Implementation for saving to Back4App
+    pub async fn sync_website(&self, _website: Website) -> Result<(), Box<dyn std::error::Error>> {
+        // TODO: Implement Back4App sync
+        println!("Back4App sync not yet implemented");
         Ok(())
     }
 }

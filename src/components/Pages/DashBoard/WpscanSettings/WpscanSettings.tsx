@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './WpscanSettings.css';
+import { TauriService } from '../../../../services/TauriService';
 
 interface WpscanSettingsProps {
   onApiKeyChange: (apiKey: string) => void;
@@ -21,6 +22,8 @@ const WpscanSettings: React.FC<WpscanSettingsProps> = ({
   const [apiKey, setApiKey] = useState('');
   const [filter, setFilter] = useState<'all' | 'wordpress' | 'other'>('all');
   const [showApiKey, setShowApiKey] = useState(false);
+  const [apiKeyStatus, setApiKeyStatus] = useState<'unknown' | 'valid' | 'invalid' | 'testing'>('unknown');
+  const [apiKeyError, setApiKeyError] = useState<string>('');
 
   useEffect(() => {
     // Load saved API key from localStorage
@@ -28,8 +31,31 @@ const WpscanSettings: React.FC<WpscanSettingsProps> = ({
     if (savedApiKey) {
       setApiKey(savedApiKey);
       onApiKeyChange(savedApiKey);
+      validateApiKey(savedApiKey);
     }
   }, [onApiKeyChange]);
+
+  const validateApiKey = async (key: string) => {
+    if (!key.trim()) {
+      setApiKeyStatus('unknown');
+      setApiKeyError('');
+      return;
+    }
+
+    setApiKeyStatus('testing');
+    setApiKeyError('');
+
+    try {
+      const isValid = await TauriService.testWpscanApiKey(key);
+      setApiKeyStatus(isValid ? 'valid' : 'invalid');
+      if (!isValid) {
+        setApiKeyError('API key validation failed');
+      }
+    } catch (error) {
+      setApiKeyStatus('invalid');
+      setApiKeyError(error instanceof Error ? error.message : 'Unknown error');
+    }
+  };
 
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newApiKey = e.target.value;
@@ -42,6 +68,17 @@ const WpscanSettings: React.FC<WpscanSettingsProps> = ({
     } else {
       localStorage.removeItem('wpscan_api_key');
     }
+
+    // Reset validation status when user types
+    setApiKeyStatus('unknown');
+    setApiKeyError('');
+
+    // Debounce validation
+    const timeoutId = setTimeout(() => {
+      validateApiKey(newApiKey);
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
   };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,6 +89,32 @@ const WpscanSettings: React.FC<WpscanSettingsProps> = ({
 
   const toggleApiKeyVisibility = () => {
     setShowApiKey(!showApiKey);
+  };
+
+  const getApiKeyStatusIcon = () => {
+    switch (apiKeyStatus) {
+      case 'valid':
+        return '✅';
+      case 'invalid':
+        return '❌';
+      case 'testing':
+        return '🔄';
+      default:
+        return '';
+    }
+  };
+
+  const getApiKeyStatusMessage = () => {
+    switch (apiKeyStatus) {
+      case 'valid':
+        return 'API key is valid';
+      case 'invalid':
+        return apiKeyError || 'Invalid API key';
+      case 'testing':
+        return 'Validating API key...';
+      default:
+        return '';
+    }
   };
 
   const filteredWebsites = websites.filter(website => {
@@ -78,7 +141,7 @@ const WpscanSettings: React.FC<WpscanSettingsProps> = ({
               value={apiKey}
               onChange={handleApiKeyChange}
               placeholder="Enter your WPScan API key"
-              className="api-key-input"
+              className={`api-key-input ${apiKeyStatus === 'valid' ? 'valid' : apiKeyStatus === 'invalid' ? 'invalid' : ''}`}
             />
             <button
               type="button"
@@ -88,7 +151,17 @@ const WpscanSettings: React.FC<WpscanSettingsProps> = ({
             >
               {showApiKey ? "🙈" : "👁️"}
             </button>
+            {apiKey && (
+              <span className="api-key-status">
+                {getApiKeyStatusIcon()}
+              </span>
+            )}
           </div>
+          {apiKey && apiKeyStatus !== 'unknown' && (
+            <div className={`api-key-status-message ${apiKeyStatus}`}>
+              {getApiKeyStatusMessage()}
+            </div>
+          )}
           <small className="api-key-note">
             Your API key is stored locally and never shared. Get your free API key from{' '}
             <a href="https://wpscan.com/api" target="_blank" rel="noopener noreferrer">
@@ -140,14 +213,14 @@ const WpscanSettings: React.FC<WpscanSettingsProps> = ({
           <button
             className="scan-btn primary"
             onClick={onScanSelected}
-            disabled={isScanning || filteredWebsites.length === 0 || !apiKey}
+            disabled={isScanning || filteredWebsites.length === 0 || !apiKey || apiKeyStatus === 'invalid'}
           >
             {isScanning ? "Scanning..." : `Scan Selected (${filteredWebsites.length})`}
           </button>
           <button
             className="scan-btn secondary"
             onClick={onScanAll}
-            disabled={isScanning || websites.length === 0 || !apiKey}
+            disabled={isScanning || websites.length === 0 || !apiKey || apiKeyStatus === 'invalid'}
           >
             {isScanning ? "Scanning..." : "Scan All Websites"}
           </button>
@@ -157,11 +230,19 @@ const WpscanSettings: React.FC<WpscanSettingsProps> = ({
             ⚠️ Please enter your WPScan API key to enable scanning
           </p>
         )}
+        {apiKey && apiKeyStatus === 'invalid' && (
+          <p className="api-key-warning">
+            ⚠️ Please enter a valid WPScan API key to enable scanning
+          </p>
+        )}
+        {apiKey && apiKeyStatus === 'testing' && (
+          <p className="api-key-info">
+            🔄 Validating API key...
+          </p>
+        )}
       </div>
     </div>
   );
 };
 
 export default WpscanSettings;
-
-
