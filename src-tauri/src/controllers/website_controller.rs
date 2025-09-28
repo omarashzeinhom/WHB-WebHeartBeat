@@ -31,10 +31,8 @@ pub async fn save_websites(
 
 #[tauri::command]
 pub async fn export_websites(storage: State<'_, StorageService>) -> Result<String, String> {
-    storage.export_websites()
-        .map_err(|e| e.to_string())
+    storage.export_websites().map_err(|e| e.to_string())
 }
-
 
 #[tauri::command]
 pub async fn check_website_status(url: String) -> Result<u16, String> {
@@ -100,7 +98,6 @@ pub async fn save_to_cloud(website: Website, provider: String) -> Result<(), Str
     Ok(())
 }
 
-
 #[tauri::command]
 pub async fn update_website_industry(
     id: i64,
@@ -108,12 +105,29 @@ pub async fn update_website_industry(
     storage: State<'_, StorageService>,
 ) -> Result<(), String> {
     let mut websites = storage.get_websites().map_err(|e| e.to_string())?;
-    
+
     if let Some(website) = websites.iter_mut().find(|w| w.id == id) {
         website.industry = industry;
-        storage.save_websites(&websites).map_err(|e| e.to_string())?;
+        storage
+            .save_websites(&websites)
+            .map_err(|e| e.to_string())?;
         Ok(())
     } else {
         Err("Website not found".to_string())
     }
+}
+#[tauri::command]
+pub async fn export_website_report(
+    website_id: i64,
+    format: String,
+    storage: State<'_, StorageService>,
+) -> Result<String, String> {
+    // Implementation for exporting reports
+    Ok("Export functionality coming soon".to_string())
+}
+
+#[tauri::command]
+pub async fn take_full_page_screenshot() -> Result<String, String> {
+    // Implementation for full page screenshots
+    Ok("Full page screenshot functionality coming soon".to_string())
 }

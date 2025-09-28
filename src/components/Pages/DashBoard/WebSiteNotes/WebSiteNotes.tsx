@@ -47,7 +47,6 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
 
   const handleFieldChange = (section: string, field: string, value: any) => {
     if (section === 'generalNotes') {
-      // Handle general notes directly
       const updatedNotes = {
         ...currentNotes,
         generalNotes: value
@@ -87,28 +86,28 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
     setHasChanges(true);
   };
 
-  // DNS History Tab - Fixed functionality
+  // DNS History Tab - Fixed field names
   const DNSHistoryTab = () => (
     <div className="notes-tab-content">
       <div className="tab-header">
         <h3>DNS Records History</h3>
-        <button className="add-btn" onClick={() => handleArrayChange('dnsHistory', [...currentNotes.dnsHistory, {
-          record_type: 'A',  // Changed from 'type' to 'record_type'
+        <button className="add-btn" onClick={() => handleArrayChange('dnsHistory', [...(currentNotes.dnsHistory || []), {
+          type: 'A',
           value: '',
-          last_checked: new Date().toISOString()  // Changed from 'lastChecked' to 'last_checked'
+          lastChecked: new Date().toISOString()
         }])}>
           <Plus size={16} /> Add Record
         </button>
       </div>
 
       <div className="dns-records">
-        {currentNotes.dnsHistory?.length === 0 ? (
+        {(!currentNotes.dnsHistory || currentNotes.dnsHistory.length === 0) ? (
           <p className="empty-message">No DNS records added yet. Click "Add Record" to start tracking DNS changes.</p>
         ) : (
-          currentNotes.dnsHistory?.map((record: any, index: number) => (
+          currentNotes.dnsHistory.map((record: any, index: number) => (
             <div key={index} className="dns-record">
               <select
-                value={record.type}
+                value={record.type || 'A'}
                 onChange={(e) => {
                   const updated = [...currentNotes.dnsHistory];
                   updated[index].type = e.target.value;
@@ -127,7 +126,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
               <input
                 type="text"
                 placeholder="Record value (e.g., IP address, domain)"
-                value={record.value}
+                value={record.value || ''}
                 onChange={(e) => {
                   const updated = [...currentNotes.dnsHistory];
                   updated[index].value = e.target.value;
@@ -177,7 +176,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
         <button
           className="add-btn"
           onClick={() => handleNestedArrayChange('projectAccess', 'credentials', [
-            ...currentNotes.projectAccess.credentials,
+            ...(currentNotes.projectAccess?.credentials || []),
             { service: '', username: '', url: '', notes: '' }
           ])}
         >
@@ -186,14 +185,14 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
       </div>
 
       <div className="credentials-list">
-        {currentNotes.projectAccess.credentials.map((cred: any, index: number) => (
+        {(currentNotes.projectAccess?.credentials || []).map((cred: any, index: number) => (
           <div key={index} className="credential-item">
             <input
               type="text"
               placeholder="Service (e.g., WordPress Admin, cPanel)"
-              value={cred.service}
+              value={cred.service || ''}
               onChange={(e) => {
-                const updated = [...currentNotes.projectAccess.credentials];
+                const updated = [...(currentNotes.projectAccess?.credentials || [])];
                 updated[index].service = e.target.value;
                 handleNestedArrayChange('projectAccess', 'credentials', updated);
               }}
@@ -201,9 +200,9 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
             <input
               type="text"
               placeholder="Username"
-              value={cred.username}
+              value={cred.username || ''}
               onChange={(e) => {
-                const updated = [...currentNotes.projectAccess.credentials];
+                const updated = [...(currentNotes.projectAccess?.credentials || [])];
                 updated[index].username = e.target.value;
                 handleNestedArrayChange('projectAccess', 'credentials', updated);
               }}
@@ -211,18 +210,18 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
             <input
               type="text"
               placeholder="URL"
-              value={cred.url}
+              value={cred.url || ''}
               onChange={(e) => {
-                const updated = [...currentNotes.projectAccess.credentials];
+                const updated = [...(currentNotes.projectAccess?.credentials || [])];
                 updated[index].url = e.target.value;
                 handleNestedArrayChange('projectAccess', 'credentials', updated);
               }}
             />
             <textarea
               placeholder="Notes"
-              value={cred.notes}
+              value={cred.notes || ''}
               onChange={(e) => {
-                const updated = [...currentNotes.projectAccess.credentials];
+                const updated = [...(currentNotes.projectAccess?.credentials || [])];
                 updated[index].notes = e.target.value;
                 handleNestedArrayChange('projectAccess', 'credentials', updated);
               }}
@@ -230,7 +229,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
             <button
               className="remove-btn"
               onClick={() => handleNestedArrayChange('projectAccess', 'credentials',
-                currentNotes.projectAccess.credentials.filter((_: any, i: number) => i !== index))}
+                (currentNotes.projectAccess?.credentials || []).filter((_: any, i: number) => i !== index))}
             >
               <Trash2 size={14} />
             </button>
@@ -242,7 +241,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
         <h4>Access Notes</h4>
         <textarea
           placeholder="Additional access information..."
-          value={currentNotes.projectAccess.accessNotes}
+          value={currentNotes.projectAccess?.accessNotes || ''}
           onChange={(e) => handleFieldChange('projectAccess', 'accessNotes', e.target.value)}
           rows={4}
         />
@@ -257,7 +256,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
       <textarea
         className="general-notes-textarea"
         placeholder="Enter general notes about this website..."
-        value={currentNotes.generalNotes}
+        value={currentNotes.generalNotes || ''}
         onChange={(e) => handleFieldChange('generalNotes', '', e.target.value)}
         rows={15}
       />
@@ -272,7 +271,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
         <button
           className="add-btn"
           onClick={() => handleNestedArrayChange('security', 'vulnerabilities', [
-            ...currentNotes.security.vulnerabilities,
+            ...(currentNotes.security?.vulnerabilities || []),
             {
               name: '',
               severity: 'medium',
@@ -287,22 +286,22 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
       </div>
 
       <div className="vulnerabilities-list">
-        {currentNotes.security.vulnerabilities.map((vuln: any, index: number) => (
+        {(currentNotes.security?.vulnerabilities || []).map((vuln: any, index: number) => (
           <div key={index} className={`vulnerability-item severity-${vuln.severity}`}>
             <input
               type="text"
               placeholder="Vulnerability name"
-              value={vuln.name}
+              value={vuln.name || ''}
               onChange={(e) => {
-                const updated = [...currentNotes.security.vulnerabilities];
+                const updated = [...(currentNotes.security?.vulnerabilities || [])];
                 updated[index].name = e.target.value;
                 handleNestedArrayChange('security', 'vulnerabilities', updated);
               }}
             />
             <select
-              value={vuln.severity}
+              value={vuln.severity || 'medium'}
               onChange={(e) => {
-                const updated = [...currentNotes.security.vulnerabilities];
+                const updated = [...(currentNotes.security?.vulnerabilities || [])];
                 updated[index].severity = e.target.value;
                 handleNestedArrayChange('security', 'vulnerabilities', updated);
               }}
@@ -313,9 +312,9 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
               <option value="critical">Critical</option>
             </select>
             <select
-              value={vuln.status}
+              value={vuln.status || 'open'}
               onChange={(e) => {
-                const updated = [...currentNotes.security.vulnerabilities];
+                const updated = [...(currentNotes.security?.vulnerabilities || [])];
                 updated[index].status = e.target.value;
                 handleNestedArrayChange('security', 'vulnerabilities', updated);
               }}
@@ -326,9 +325,9 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
             </select>
             <textarea
               placeholder="Description"
-              value={vuln.description}
+              value={vuln.description || ''}
               onChange={(e) => {
-                const updated = [...currentNotes.security.vulnerabilities];
+                const updated = [...(currentNotes.security?.vulnerabilities || [])];
                 updated[index].description = e.target.value;
                 handleNestedArrayChange('security', 'vulnerabilities', updated);
               }}
@@ -336,7 +335,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
             <button
               className="remove-btn"
               onClick={() => handleNestedArrayChange('security', 'vulnerabilities',
-                currentNotes.security.vulnerabilities.filter((_: any, i: number) => i !== index))}
+                (currentNotes.security?.vulnerabilities || []).filter((_: any, i: number) => i !== index))}
             >
               <Trash2 size={14} />
             </button>
@@ -348,7 +347,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
         <h4>Security Scan Results & Exposed Information</h4>
         <textarea
           placeholder="Enter security scan results and exposed information..."
-          value={currentNotes.security.exposedInfo}
+          value={currentNotes.security?.exposedInfo || ''}
           onChange={(e) => handleFieldChange('security', 'exposedInfo', e.target.value)}
           rows={6}
         />
@@ -375,7 +374,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
         <div className="report-field">
           <label>Executive Summary</label>
           <textarea
-            value={currentNotes.report.summary}
+            value={currentNotes.report?.summary || ''}
             onChange={(e) => handleFieldChange('report', 'summary', e.target.value)}
             placeholder="Brief overview of website status..."
             rows={3}
@@ -384,7 +383,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
         <div className="report-field">
           <label>Performance Analysis</label>
           <textarea
-            value={currentNotes.report.performance}
+            value={currentNotes.report?.performance || ''}
             onChange={(e) => handleFieldChange('report', 'performance', e.target.value)}
             placeholder="Performance metrics and analysis..."
             rows={3}
@@ -393,7 +392,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
         <div className="report-field">
           <label>Security Assessment</label>
           <textarea
-            value={currentNotes.report.security}
+            value={currentNotes.report?.security || ''}
             onChange={(e) => handleFieldChange('report', 'security', e.target.value)}
             placeholder="Security findings and recommendations..."
             rows={3}
@@ -402,7 +401,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
         <div className="report-field">
           <label>Recommendations</label>
           <textarea
-            value={currentNotes.report.recommendations}
+            value={currentNotes.report?.recommendations || ''}
             onChange={(e) => handleFieldChange('report', 'recommendations', e.target.value)}
             placeholder="Action items and recommendations..."
             rows={3}
@@ -430,8 +429,6 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
       linkElement.setAttribute('download', exportFileDefaultName);
       linkElement.click();
     } else if (format === 'pdf') {
-      // For PDF export, you'd typically use a library like jsPDF or html2canvas
-      console.log('PDF export functionality would be implemented here');
       alert('PDF export feature will be implemented. For now, use the JSON export.');
     }
   };

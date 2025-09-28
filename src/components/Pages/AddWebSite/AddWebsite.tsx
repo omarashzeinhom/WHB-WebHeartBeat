@@ -75,9 +75,6 @@ function AddWebsitePage({ onWebsiteAdded }: AddWebsitePageProps) {
     }
   };
 
-  const handleCancel = () => {
-    navigate({ to: '/dashboard' as any });
-  };
 
   return (
     <div className="add-website-page">
