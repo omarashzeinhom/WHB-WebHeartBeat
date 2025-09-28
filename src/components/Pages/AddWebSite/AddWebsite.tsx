@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Industry } from "../../../models/website";
+import { Industry, ProjectStatus } from "../../../models/website"; // Import ProjectStatus
 import AddWebsiteForm from "../../AddWebsiteForm/AddWebsiteForm";
 import { TauriService } from "../../../services/TauriService";
 import { 
@@ -41,8 +41,14 @@ function AddWebsitePage({ onWebsiteAdded }: AddWebsitePageProps) {
         status: null,
         lastChecked: null,
         industry: industry,
+        projectStatus: 'wip' as ProjectStatus, 
         favorite: false,
-        screenshot: null
+        screenshot: null,
+        isProcessing: false,
+        isWordPress: false,
+        wpscanResult: null,
+        description: '',
+        tags: []
       };
 
       // Save the website using TauriService

@@ -1,7 +1,7 @@
 // services/TauriService.ts
 import { invoke } from "@tauri-apps/api/core";
 import { WebsiteController } from "../controllers/websiteController";
-import { Industry, Website } from "../models/website";
+import { Industry, ProjectStatus, Website } from "../models/website";
 
 export class TauriService {
   static async loadWebsites(): Promise<Website[]> {
@@ -84,5 +84,17 @@ export class TauriService {
     }
   }
 
+  static async updateWebsiteProjectStatus(id: number, projectStatus: ProjectStatus): Promise<void> {
+    try {
+      await invoke('update_website_project_status', { id, projectStatus });
+    } catch (error) {
+      console.error("Failed to update website project status:", error);
+      throw error;
+    }
+  }
+
+
+
+  
 }
 

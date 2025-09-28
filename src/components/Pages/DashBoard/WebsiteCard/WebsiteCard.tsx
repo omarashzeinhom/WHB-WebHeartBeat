@@ -1,10 +1,15 @@
 import React from 'react';
 import './WebsiteCard.css';
-import { Industry, Website } from '../../../../models/website';
+import { Industry, Website, ProjectStatus, PROJECT_STATUSES } from '../../../../models/website';
 
 // Import SVG icons
+import ScreenshotIcon from '../../../../assets/icons/screenshot-icon.svg';
+import StatusIcon from '../../../../assets/icons/status-icon.svg';
+import DeleteIcon from '../../../../assets/icons/delete-icon.svg';
+import OpenLinkIcon from '../../../../assets/icons/open-link-icon.svg';
+import FavoriteIcon from '../../../../assets/icons/favorite-icon.svg';
+import FavoriteFilledIcon from "../../../../assets/icons/favorite-filled-icon.svg";
 import IndustrySelector from '../IndustrySelector/IndustrySelector';
-import { DeleteIcon, FavoriteFilledIcon, FavoriteIcon, OpenLinkIcon, ScreenshotIcon, StatusIcon } from '../../../../assets/icons/icons';
 
 interface WebsiteCardProps {
   website: Website;
@@ -13,10 +18,12 @@ interface WebsiteCardProps {
   onToggleFavorite: (id: number) => void;
   onTakeScreenshot: (id: number) => void;
   onIndustryChange: (id: number, industry: Industry) => void;
+  onProjectStatusChange: (id: number, projectStatus: ProjectStatus) => void;
   loading: boolean;
   screenshotLoading: boolean;
   isProcessing?: boolean;
   onWebsiteClick: (website: Website) => void;
+  projectStatuses?: { value: ProjectStatus; label: string; color: string }[];
 }
 
 // Define industries array with proper typing
@@ -40,35 +47,51 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
   onToggleFavorite,
   onTakeScreenshot,
   onIndustryChange,
+  onProjectStatusChange,
   onWebsiteClick,
   loading,
   screenshotLoading,
+  projectStatuses = PROJECT_STATUSES,
 }) => {
+  // HTTP Response Status (completely separate from project status)
   const getStatusColor = (status: number | null) => {
     if (status === null) return '#6c757d';
     return status === 200 ? '#28a745' : '#dc3545';
   };
 
+  // Project Status (completely separate from HTTP status)
+  const getProjectStatusInfo = () => {
+    const statusInfo = projectStatuses.find(s => s.value === website.projectStatus);
+    return statusInfo || { value: website.projectStatus, label: website.projectStatus, color: '#A4A4A4' };
+  };
+
+  const projectStatusInfo = getProjectStatusInfo();
+
   const handleIndustryChange = (industry: Industry) => {
     onIndustryChange(website.id, industry);
   };
 
+  const handleProjectStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    e.stopPropagation();
+    onProjectStatusChange(website.id, e.target.value as ProjectStatus);
+  };
+
   const handleCardClick = (e: React.MouseEvent) => {
-    // Don't trigger card click if clicking on interactive elements
     const target = e.target as HTMLElement;
-    if (target.closest('.action-btn') || target.closest('.industry-selector') || target.closest('.favorite-btn')) {
+    if (target.closest('.action-btn') || 
+        target.closest('.industry-selector') || 
+        target.closest('.favorite-btn') ||
+        target.closest('.project-status-selector')) {
       return;
     }
     onWebsiteClick(website);
   };
 
-  // FIXED: Simplified handleActionClick
   const handleActionClick = (handler: Function) => (e: React.MouseEvent) => {
     e.stopPropagation();
     handler();
   };
 
-  // FIXED: openWebsite now works correctly
   const openWebsite = (e: React.MouseEvent) => {
     e.stopPropagation();
     window.open(website.url, '_blank', 'noopener,noreferrer');
@@ -80,6 +103,15 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
       onClick={handleCardClick}
       style={{ cursor: 'pointer' }}
     >
+      {/* Project Status Badge - Top Left */}
+      <div 
+        className="project-status-badge"
+        style={{ backgroundColor: projectStatusInfo.color }}
+        title={`Project Status: ${projectStatusInfo.label}`}
+      >
+        {projectStatusInfo.label}
+      </div>
+
       {/* Screenshot preview */}
       {website.screenshot && (
         <div className="screenshot-preview">
@@ -91,10 +123,10 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
         </div>
       )}
 
-      {/* Status badge and industry selector */}
+      {/* HTTP Status Badge - Top Right */}
       <div className="card-header">
-        <div className="status-indicator" style={{ backgroundColor: getStatusColor(website.status) }}>
-          Status: {website.status || 'N/A'}
+        <div className="http-status-indicator" style={{ backgroundColor: getStatusColor(website.status) }}>
+          {website.status || 'N/A'}
         </div>
         <div className="header-actions">
           <div onClick={(e) => e.stopPropagation()}>
@@ -125,6 +157,21 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
         </span>
       </div>
 
+      {/* Project Status Selector (simple dropdown) */}
+      <div className="project-status-section" onClick={(e) => e.stopPropagation()}>
+        <select 
+          className="project-status-selector"
+          value={website.projectStatus}
+          onChange={handleProjectStatusChange}
+        >
+          {projectStatuses.map((status) => (
+            <option key={status.value} value={status.value}>
+              {status.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Action buttons */}
       <div className="card-actions">
         <button
@@ -141,10 +188,10 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
           className="action-btn"
           onClick={handleActionClick(() => onCheck(website.id))}
           disabled={loading}
-          title="Check Status"
+          title="Check HTTP Status"
         >
-          <img src={StatusIcon} alt="Status" style={{ filter: `drop-shadow(0 0 8px ${getStatusColor(website.status)}80)` }} />
-          <span>Status</span>
+          <img src={StatusIcon} alt="Status" />
+          <span>Check Status</span>
         </button>
 
         <button
@@ -156,7 +203,6 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
           <span>Delete</span>
         </button>
 
-        {/* FIXED: This should now work correctly */}
         <button
           className="action-btn"
           onClick={openWebsite}

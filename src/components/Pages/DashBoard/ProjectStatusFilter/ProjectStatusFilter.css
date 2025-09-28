@@ -1,0 +1,166 @@
+.project-status-filter {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.filter-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #495057;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.status-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 20px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 12px;
+  color: #495057;
+}
+
+.status-btn.circle-btn {
+  padding: 8px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+  position: relative;
+}
+
+.status-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-color: #007bff;
+}
+
+.status-btn.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.status-btn.active .status-dot {
+  border-color: white;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.status-btn.circle-btn .status-dot {
+  width: 16px;
+  height: 16px;
+}
+
+.status-btn.circle-btn .status-label {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.status-btn.circle-btn:hover .status-label {
+  opacity: 1;
+}
+
+.all-dot {
+  background: linear-gradient(45deg, #666, #999);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+}
+
+.add-status-btn {
+  border-style: dashed;
+  border-color: #adb5bd;
+}
+
+.add-status-btn:hover {
+  border-color: #007bff;
+  background: #f8f9fa;
+}
+
+.custom-status-form {
+  margin-top: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.form-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.status-input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.color-picker {
+  width: 40px;
+  height: 30px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.form-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.add-btn,
+.cancel-btn {
+  padding: 4px 8px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.add-btn {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+.cancel-btn {
+  background: #6c757d;
+  color: white;
+  border-color: #6c757d;
+}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { listen } from '@tauri-apps/api/event';
-import { Website, WpscanResult, Industry } from "../../../models/website";
+import { Website, Industry, ProjectStatus, PROJECT_STATUSES } from "../../../models/website";
 import { TauriService } from "../../../services/TauriService";
 import ExportStatusPopup from "./ExportStatusPopup/ExportStatusPopup";
 import IndustryFilter from "./IndustryFilter/IndustryFilter";
@@ -9,6 +9,8 @@ import WebsiteCard from "./WebsiteCard/WebsiteCard";
 import WebsiteDetail from "./WebsiteDetail/WebSiteDetail";
 import WpscanResults from "./WpscanResults/WpscanResults";
 import WpscanSettings from "./WpscanSettings/WpscanSettings";
+import ProjectStatusFilter from "./ProjectStatusFilter/ProjectStatusFilter";
+import { WpscanResult } from "../../../models/WpscanResult";
 
 interface ScreenshotProgress {
   total: number;
@@ -39,6 +41,8 @@ function DashBoard() {
   const [isWpscanning, setIsWpscanning] = useState(false);
   const [errors, setErrors] = useState<AppError[]>([]);
   const [selectedIndustry, setSelectedIndustry] = useState<Industry | 'all'>('all');
+  const [selectedProjectStatus, setSelectedProjectStatus] = useState<ProjectStatus | 'all'>('all'); // NEW
+
   const [selectedWebsite, setSelectedWebsite] = useState<Website | null>(null);
   const [isExportPopupOpen, setIsExportPopupOpen] = useState(false);
   const [exportStatus, setExportStatus] = useState<{
@@ -52,6 +56,8 @@ function DashBoard() {
     exportFormat: 'json',
     exportTime: new Date(),
   });
+  const [customStatuses, setCustomStatuses] = useState<{ value: ProjectStatus; label: string; color: string }[]>([]); // NEW
+
 
   const navigate = useNavigate();
 
@@ -250,12 +256,44 @@ function DashBoard() {
       w.id === id ? { ...w, favorite: !w.favorite } : w
     ));
   };
+  const handleProjectStatusChange = async (id: number, projectStatus: ProjectStatus) => {
+    setWebsites(prevWebsites =>
+      prevWebsites.map(website =>
+        website.id === id ? { ...website, projectStatus } : website
+      )
+    );
+
+    try {
+      await TauriService.updateWebsiteProjectStatus(id, projectStatus);
+    } catch (error) {
+      console.error('Failed to update project status:', error);
+      addError('Failed to update project status');
+    }
+  };
+
+  const handleAddCustomStatus = (status: { label: string; color: string }) => {
+    const newStatus = {
+      value: status.label.toLowerCase().replace(/\s+/g, '_') as ProjectStatus,
+      label: status.label,
+      color: status.color,
+    };
+    setCustomStatuses(prev => [...prev, newStatus]);
+  };
+
+  const getAllStatuses = () => {
+    return [...PROJECT_STATUSES, ...customStatuses];
+  };
+
 
   const getIndustryFilteredWebsites = (): Website[] => {
-    if (selectedIndustry === 'all') {
-      return websites;
+    let filtered = websites;
+    if (selectedIndustry !== 'all') {
+      filtered = filtered.filter(website => website.industry === selectedIndustry);
     }
-    return websites.filter(website => website.industry === selectedIndustry);
+    if (selectedProjectStatus !== 'all') {
+      filtered = filtered.filter(website => website.projectStatus === selectedProjectStatus);
+    }
+    return filtered;
   };
 
   const getWpscanFilteredWebsites = (filter: 'all' | 'wordpress' | 'other'): Website[] => {
@@ -381,6 +419,9 @@ function DashBoard() {
     navigate({ to: '/add-website' });
   };
 
+
+
+
   // Main render function
   const renderContent = () => {
     if (selectedWebsite) {
@@ -477,7 +518,7 @@ function DashBoard() {
           </button>
           <button
             className="scan-btn screenshot-btn"
-            //onClick={takeAllScreenshots}
+            onClick={takeAllScreenshots}
             disabled={screenshotLoading || websites.length === 0 || loading}
           >
             {screenshotLoading ? "Capturing..." : "Screenshot All"}
@@ -503,6 +544,14 @@ function DashBoard() {
       <IndustryFilter
         selectedIndustry={selectedIndustry}
         onIndustryChange={setSelectedIndustry}
+      />
+
+
+      {/* NEW: Project Status Filter */}
+      <ProjectStatusFilter
+        selectedStatus={selectedProjectStatus}
+        onStatusChange={setSelectedProjectStatus}
+        onAddCustomStatus={handleAddCustomStatus}
       />
 
       {/* Progress Indicator */}
@@ -564,9 +613,11 @@ function DashBoard() {
               onTakeScreenshot={takeScreenshot}
               onWebsiteClick={handleWebsiteClick}
               onIndustryChange={handleIndustryChange}
+              onProjectStatusChange={handleProjectStatusChange}
               loading={loading}
               screenshotLoading={screenshotLoading}
               isProcessing={website.isProcessing || false}
+              projectStatuses={getAllStatuses()}
             />
           ))}
         </div>

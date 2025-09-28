@@ -108,6 +108,7 @@ export class WebsiteController {
         status: null,
         lastChecked: null,
         industry: "general",
+        projectStatus: "wip",
         favorite: false,
         screenshot: null,
         isWordPress: false

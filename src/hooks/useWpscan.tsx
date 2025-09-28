@@ -1,7 +1,8 @@
 // hooks/useWpscan.ts
 import { AppStateController } from '../controllers/AppStateController';
 import { WpscanController } from '../controllers/wspscanController';
-import { Website, WpscanResult } from '../models/website';
+import { Website } from '../models/website';
+import { WpscanResult } from '../models/WpscanResult';
 
 export const useWpscan = (
   websites: Website[],

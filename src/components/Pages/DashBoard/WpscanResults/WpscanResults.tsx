@@ -1,6 +1,7 @@
 // components/Pages/Dashboard/WpscanResults/WpscanResults.tsx
 import React from 'react';
-import { Website, WpscanResult, Plugin, Theme, Vulnerability } from '../../../../models/website';
+import { Website } from '../../../../models/website';
+import { WpscanResult, Vulnerability, Theme, Plugin } from '../../../../models/WpscanResult';
 import './WpscanResults.css';
 
 interface WpscanResultsProps {
@@ -71,7 +72,7 @@ const WpscanResults: React.FC<WpscanResultsProps> = ({ results, websites }) => {
   return (
     <div className="wpscan-results">
       <h3>Security Scan Results</h3>
-      
+
       {Object.entries(results).map(([websiteId, result]) => {
         const website = websites.find(w => w.id === parseInt(websiteId));
         if (!website) return null;

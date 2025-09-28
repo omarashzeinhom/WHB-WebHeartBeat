@@ -1,5 +1,6 @@
 // controllers/WpscanController.ts
-import { Website, WpscanResult } from "../models/website";
+import { Website} from "../models/website";
+import { WpscanResult } from "../models/WpscanResult";
 import { TauriService } from "../services/TauriService";
 
 export class WpscanController {

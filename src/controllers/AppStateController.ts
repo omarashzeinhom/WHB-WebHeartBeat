@@ -1,5 +1,6 @@
 // controllers/AppStateController.ts
-import { Website, WpscanResult } from "../models/website";
+import { Website, } from "../models/website";
+import { WpscanResult } from "../models/WpscanResult";
 
 export interface AppState {
   websites: Website[];

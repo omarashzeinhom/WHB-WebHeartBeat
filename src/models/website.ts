@@ -1,40 +1,6 @@
 import { WebVitals } from "./WebVitals";
+import { WpscanResult } from "./WpscanResult";
 
-export interface WpscanResult {
-  vulnerabilities: Vulnerability[];
-  plugins: Plugin[];
-  themes: Theme[];
-  users: User[];
-  scanDate: string;
-  isWordPress: boolean;
-}
-
-export interface Vulnerability {
-  id: string;
-  title: string;
-  description: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  cve?: string;
-  references: string[];
-}
-
-export interface Plugin {
-  name: string;
-  version: string;
-  vulnerabilities: Vulnerability[];
-}
-
-export interface Theme {
-  name: string;
-  version: string;
-  vulnerabilities: Vulnerability[];
-}
-
-export interface User {
-  id: number;
-  login: string;
-  displayName: string;
-}
 
 export interface Website {
   id: number;
@@ -44,6 +10,7 @@ export interface Website {
   status: number | null;
   lastChecked: string | null;
   industry: Industry;
+  projectStatus: ProjectStatus; // NEW
   favorite: boolean;
   screenshot: string | null;
   isProcessing?: boolean;
@@ -52,6 +19,27 @@ export interface Website {
   description?: string;
   tags?: string[];
 }
+
+export type ProjectStatus =
+  | 'wip'
+  | 'building'
+  | 'developing'
+  | 'designing'
+  | 'figma_prototype'
+  | 'client_access'
+  | 'info_gathering'
+  | string; // For custom statuses
+
+export const PROJECT_STATUSES: { value: ProjectStatus; label: string; color: string }[] = [
+  { value: 'wip', label: 'WIP', color: '#FF6B35' },
+  { value: 'building', label: 'Building', color: '#4ECDC4' },
+  { value: 'developing', label: 'Developing', color: '#45B7D1' },
+  { value: 'designing', label: 'Designing', color: '#96CEB4' },
+  { value: 'figma_prototype', label: 'Figma Prototype', color: '#FECA57' },
+  { value: 'client_access', label: 'Client Access', color: '#FF9FF3' },
+  { value: 'info_gathering', label: 'Info Gathering', color: '#54A0FF' },
+];
+
 export type Industry =
   | 'general'
   | 'ecommerce'
