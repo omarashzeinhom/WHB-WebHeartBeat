@@ -1,17 +1,17 @@
 import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Industry, ProjectStatus } from "../../../models/website"; // Import ProjectStatus
 import AddWebsiteForm from "../../AddWebsiteForm/AddWebsiteForm";
 import { TauriService } from "../../../services/TauriService";
-import { 
-  ArrowLeft, 
-  AlertCircle, 
+import {
+  ArrowLeft,
+  AlertCircle,
   CheckCircle2,
-  ShoppingCart, 
-  CreditCard, 
-  Heart, 
-  GraduationCap, 
-  Cpu, 
+  ShoppingCart,
+  CreditCard,
+  Heart,
+  GraduationCap,
+  Cpu,
   Globe,
   BarChart3
 } from 'lucide-react';
@@ -41,7 +41,7 @@ function AddWebsitePage({ onWebsiteAdded }: AddWebsitePageProps) {
         status: null,
         lastChecked: null,
         industry: industry,
-        projectStatus: 'wip' as ProjectStatus, 
+        projectStatus: 'wip' as ProjectStatus,
         favorite: false,
         screenshot: null,
         isProcessing: false,
@@ -66,7 +66,7 @@ function AddWebsitePage({ onWebsiteAdded }: AddWebsitePageProps) {
         setSuccess(false);
         navigate({ to: '/dashboard' as any });
       }, 2000);
-      
+
     } catch (error) {
       console.error("Error adding website:", error);
       setError("Invalid URL provided or failed to save website");
@@ -83,10 +83,10 @@ function AddWebsitePage({ onWebsiteAdded }: AddWebsitePageProps) {
     <div className="add-website-page">
       <div className="page-header">
         <div className="header-content">
-          <button className="back-btn" onClick={handleCancel}>
-            <ArrowLeft size={18} />
+          <Link to="/" className="back-btn">
+            <ArrowLeft size={16} style={{ marginRight: "0.5rem" }} />
             Back to Dashboard
-          </button>
+          </Link>
           <div className="header-text">
             <div className="header-icon">
               <BarChart3 size={32} />
@@ -108,7 +108,7 @@ function AddWebsitePage({ onWebsiteAdded }: AddWebsitePageProps) {
               </div>
             </div>
           )}
-          
+
           {success && (
             <div className="success-message alert-message">
               <CheckCircle2 className="alert-icon" size={20} />
@@ -132,7 +132,7 @@ function AddWebsitePage({ onWebsiteAdded }: AddWebsitePageProps) {
               Categorize your websites by industry to filter and analyze performance
               metrics specific to different sectors.
             </p>
-            
+
             <div className="industries-grid">
               <div className="industry-item">
                 <div className="industry-icon">
@@ -143,7 +143,7 @@ function AddWebsitePage({ onWebsiteAdded }: AddWebsitePageProps) {
                   <p>Focus on conversion metrics and page load times</p>
                 </div>
               </div>
-              
+
               <div className="industry-item">
                 <div className="industry-icon">
                   <CreditCard size={20} />
@@ -153,7 +153,7 @@ function AddWebsitePage({ onWebsiteAdded }: AddWebsitePageProps) {
                   <p>Emphasize security and compliance indicators</p>
                 </div>
               </div>
-              
+
               <div className="industry-item">
                 <div className="industry-icon">
                   <Heart size={20} />
@@ -163,7 +163,7 @@ function AddWebsitePage({ onWebsiteAdded }: AddWebsitePageProps) {
                   <p>Prioritize accessibility and reliability</p>
                 </div>
               </div>
-              
+
               <div className="industry-item">
                 <div className="industry-icon">
                   <GraduationCap size={20} />
@@ -173,7 +173,7 @@ function AddWebsitePage({ onWebsiteAdded }: AddWebsitePageProps) {
                   <p>Focus on content delivery and engagement</p>
                 </div>
               </div>
-              
+
               <div className="industry-item">
                 <div className="industry-icon">
                   <Cpu size={20} />
@@ -183,7 +183,7 @@ function AddWebsitePage({ onWebsiteAdded }: AddWebsitePageProps) {
                   <p>Monitor advanced performance metrics</p>
                 </div>
               </div>
-              
+
               <div className="industry-item">
                 <div className="industry-icon">
                   <Globe size={20} />

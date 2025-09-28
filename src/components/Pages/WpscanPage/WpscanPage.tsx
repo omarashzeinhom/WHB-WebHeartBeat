@@ -1,5 +1,10 @@
-export default function WpscanPage(){
+export default function WpscanPage() {
     return (
-        <h2>Wp Scan Page</h2>
-    )
+        <div className="container">
+            <h2>
+                Coming Soon
+
+            </h2>
+
+        </div>)
 }

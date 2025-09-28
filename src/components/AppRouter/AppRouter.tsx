@@ -15,19 +15,19 @@ const AppRouter: React.FC = () => {
         return //<Websites {...pageParams} />;
       case 'add-website':
         return <AddWebsite {...pageParams} />;
-      case 'analytics':
+      //case 'analytics':
         return // <Analytics {...pageParams} />;
-      case 'security-scan':
+      //case 'security-scan':
         return //<SecurityScan {...pageParams} />;
-      case 'monitoring':
+      //case 'monitoring':
         return //Monitoring {...pageParams} />;
-      case 'export':
+      //case 'export':
         return //<Export {...pageParams} />;
-      case 'settings':
+      //case 'settings':
         return // <Settings {...pageParams} />;
-      case 'import':
-      case 'cloud-sync':
-      case 'community':
+      //case 'import':
+      //case 'cloud-sync':
+      //case 'community':
         return <ComingSoon pageName={currentPage} />;
       default:
         return <DashBoard {...pageParams} />;

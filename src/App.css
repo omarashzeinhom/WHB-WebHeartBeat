@@ -149,6 +149,10 @@ body {
   filter: drop-shadow(0 0 2em var(--color-accent-red));
 }
 
+.container{
+  width: 100%;
+  padding: 5% 15%;
+}
 /* Headings - All use Red Hat Display */
 h1,
 h2,
