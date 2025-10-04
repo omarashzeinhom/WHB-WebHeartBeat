@@ -35,10 +35,7 @@ function DashBoard() {
   const [cloudProvider, setCloudProvider] = useState<string | null>(null);
   const [syncFrequency, setSyncFrequency] = useState<number>(0);
   const [screenshotProgress, setScreenshotProgress] = useState<ScreenshotProgress | null>(null);
-  const [wpscanApiKey, setWpscanApiKey] = useState<string>('');
-  const [wpscanFilter, setWpscanFilter] = useState<'all' | 'wordpress' | 'other'>('all');
-  const [wpscanResults, setWpscanResults] = useState<{ [websiteId: number]: WpscanResult }>({});
-  const [isWpscanning, setIsWpscanning] = useState(false);
+
   const [errors, setErrors] = useState<AppError[]>([]);
   const [selectedIndustry, setSelectedIndustry] = useState<Industry | 'all'>('all');
   const [selectedProjectStatus, setSelectedProjectStatus] = useState<ProjectStatus | 'all'>('all'); // NEW
@@ -296,74 +293,7 @@ function DashBoard() {
     return filtered;
   };
 
-  const getWpscanFilteredWebsites = (filter: 'all' | 'wordpress' | 'other'): Website[] => {
-    return websites.filter(website => {
-      switch (filter) {
-        case 'wordpress':
-          return website.isWordPress === true;
-        case 'other':
-          return website.isWordPress === false;
-        default:
-          return true;
-      }
-    });
-  };
 
-  const handleWpscanSelected = async () => {
-    if (!wpscanApiKey) {
-      addError('Please enter your WPScan API key');
-      return;
-    }
-
-    const filteredWebsites = getWpscanFilteredWebsites(wpscanFilter);
-
-    if (filteredWebsites.length === 0) {
-      addError('No websites match the selected filter');
-      return;
-    }
-
-    setIsWpscanning(true);
-    try {
-      for (const website of filteredWebsites) {
-        const result = await TauriService.scanWebsite(website, wpscanApiKey);
-        setWpscanResults(prev => ({
-          ...prev,
-          [website.id]: result
-        }));
-      }
-    } catch (error) {
-      console.error('WPScan error:', error);
-      addError('Error scanning websites');
-    }
-    setIsWpscanning(false);
-  };
-
-  const handleWpscanAll = async () => {
-    if (!wpscanApiKey) {
-      addError('Please enter your WPScan API key');
-      return;
-    }
-
-    if (websites.length === 0) {
-      addError('No websites to scan');
-      return;
-    }
-
-    setIsWpscanning(true);
-    try {
-      for (const website of websites) {
-        const result = await TauriService.scanWebsite(website, wpscanApiKey);
-        setWpscanResults(prev => ({
-          ...prev,
-          [website.id]: result
-        }));
-      }
-    } catch (error) {
-      console.error('WPScan error:', error);
-      addError('Error scanning websites');
-    }
-    setIsWpscanning(false);
-  };
 
   const handleExport = async () => {
     try {
@@ -472,16 +402,9 @@ function DashBoard() {
           >
             Add Website
           </button>
-          <button
-            className={activeTab === "wpscan" ? "active" : ""}
-            onClick={() => setActiveTab("wpscan")}
-          >
-            Scan Website
-          </button>
         </nav>
 
         {activeTab === "dashboard" && renderDashboard()}
-        {activeTab === "wpscan" && renderWpscan()}
 
         <div className="cloud-sync-options">
           <h3>Cloud Sync</h3>
@@ -643,28 +566,7 @@ function DashBoard() {
     </div>
   );
 
-  const renderWpscan = () => (
-    <div className="wpscan-section">
-      <h2>Website Security Scanner</h2>
-      <p>Scan your websites for security vulnerabilities using WPScan API</p>
 
-      <div className="wpscan-content">
-        <WpscanSettings
-          onApiKeyChange={setWpscanApiKey}
-          onFilterChange={setWpscanFilter}
-          onScanSelected={handleWpscanSelected}
-          onScanAll={handleWpscanAll}
-          websites={websites}
-          isScanning={isWpscanning}
-        />
-
-        <WpscanResults
-          results={wpscanResults}
-          websites={websites}
-        />
-      </div>
-    </div>
-  );
 
   return (
     <main>

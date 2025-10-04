@@ -4,6 +4,7 @@ import { useNavigation } from '../../hooks/useNavigation';
 import ComingSoon from '../Pages/ComingSoon/ComingSoon';
 import AddWebsite from '../Pages/AddWebSite/AddWebsite';
 import DashBoard from '../Pages/DashBoard/DashBoard';
+import WpscanPage from '../Pages/WpscanPage/WpscanPage';
 const AppRouter: React.FC = () => {
   const { currentPage, pageParams } = useNavigation();
 
@@ -17,8 +18,8 @@ const AppRouter: React.FC = () => {
         return <AddWebsite {...pageParams} />;
       //case 'analytics':
         return // <Analytics {...pageParams} />;
-      //case 'security-scan':
-        return //<SecurityScan {...pageParams} />;
+      case 'security-scan':
+        return <WpscanPage {...pageParams} />;
       //case 'monitoring':
         return //Monitoring {...pageParams} />;
       //case 'export':

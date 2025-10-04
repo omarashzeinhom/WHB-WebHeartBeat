@@ -1,248 +1,113 @@
-import React, { useState, useEffect } from 'react';
-import './WpscanSettings.css';
-import { TauriService } from '../../../../services/TauriService';
+import { Website } from "../../../../models/website";
 
 interface WpscanSettingsProps {
   onApiKeyChange: (apiKey: string) => void;
   onFilterChange: (filter: 'all' | 'wordpress' | 'other') => void;
   onScanSelected: () => void;
   onScanAll: () => void;
-  websites: any[];
+  websites: Website[];
   isScanning: boolean;
+  selectedWebsiteIds: number[];
+  onWebsiteSelection: (websiteId: number) => void;
+  onSelectAll: () => void;
+  onDeselectAll: () => void;
+  scanLimit: number;
+  scansUsed: number;
 }
 
-const WpscanSettings: React.FC<WpscanSettingsProps> = ({
+function WpscanSettings({
   onApiKeyChange,
   onFilterChange,
   onScanSelected,
   onScanAll,
   websites,
-  isScanning
-}) => {
-  const [apiKey, setApiKey] = useState('');
-  const [filter, setFilter] = useState<'all' | 'wordpress' | 'other'>('all');
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [apiKeyStatus, setApiKeyStatus] = useState<'unknown' | 'valid' | 'invalid' | 'testing'>('unknown');
-  const [apiKeyError, setApiKeyError] = useState<string>('');
-
-  useEffect(() => {
-    // Load saved API key from localStorage
-    const savedApiKey = localStorage.getItem('wpscan_api_key');
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-      onApiKeyChange(savedApiKey);
-      validateApiKey(savedApiKey);
-    }
-  }, [onApiKeyChange]);
-
-  const validateApiKey = async (key: string) => {
-    if (!key.trim()) {
-      setApiKeyStatus('unknown');
-      setApiKeyError('');
-      return;
-    }
-
-    setApiKeyStatus('testing');
-    setApiKeyError('');
-
-    try {
-      const isValid = await TauriService.testWpscanApiKey(key);
-      setApiKeyStatus(isValid ? 'valid' : 'invalid');
-      if (!isValid) {
-        setApiKeyError('API key validation failed');
-      }
-    } catch (error) {
-      setApiKeyStatus('invalid');
-      setApiKeyError(error instanceof Error ? error.message : 'Unknown error');
-    }
-  };
-
-  const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newApiKey = e.target.value;
-    setApiKey(newApiKey);
-    onApiKeyChange(newApiKey);
-    
-    // Save to localStorage
-    if (newApiKey) {
-      localStorage.setItem('wpscan_api_key', newApiKey);
-    } else {
-      localStorage.removeItem('wpscan_api_key');
-    }
-
-    // Reset validation status when user types
-    setApiKeyStatus('unknown');
-    setApiKeyError('');
-
-    // Debounce validation
-    const timeoutId = setTimeout(() => {
-      validateApiKey(newApiKey);
-    }, 1000);
-
-    return () => clearTimeout(timeoutId);
-  };
-
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newFilter = e.target.value as 'all' | 'wordpress' | 'other';
-    setFilter(newFilter);
-    onFilterChange(newFilter);
-  };
-
-  const toggleApiKeyVisibility = () => {
-    setShowApiKey(!showApiKey);
-  };
-
-  const getApiKeyStatusIcon = () => {
-    switch (apiKeyStatus) {
-      case 'valid':
-        return '✅';
-      case 'invalid':
-        return '❌';
-      case 'testing':
-        return '🔄';
-      default:
-        return '';
-    }
-  };
-
-  const getApiKeyStatusMessage = () => {
-    switch (apiKeyStatus) {
-      case 'valid':
-        return 'API key is valid';
-      case 'invalid':
-        return apiKeyError || 'Invalid API key';
-      case 'testing':
-        return 'Validating API key...';
-      default:
-        return '';
-    }
-  };
-
-  const filteredWebsites = websites.filter(website => {
-    switch (filter) {
-      case 'wordpress':
-        return website.isWordPress === true;
-      case 'other':
-        return website.isWordPress === false;
-      default:
-        return true;
-    }
-  });
+  isScanning,
+  selectedWebsiteIds,
+  onWebsiteSelection,
+  onSelectAll,
+  onDeselectAll,
+  scanLimit,
+  scansUsed
+}: WpscanSettingsProps) {
+  const canScanMore = (numberOfScans: number) => (scansUsed + numberOfScans) <= scanLimit;
 
   return (
     <div className="wpscan-settings">
       <div className="settings-section">
-        <h3>WPScan Configuration</h3>
-        <div className="api-key-section">
+        <h3>WPScan API Configuration</h3>
+        <div className="api-key-input">
           <label htmlFor="wpscan-api-key">WPScan API Key:</label>
-          <div className="api-key-input-container">
-            <input
-              type={showApiKey ? "text" : "password"}
-              id="wpscan-api-key"
-              value={apiKey}
-              onChange={handleApiKeyChange}
-              placeholder="Enter your WPScan API key"
-              className={`api-key-input ${apiKeyStatus === 'valid' ? 'valid' : apiKeyStatus === 'invalid' ? 'invalid' : ''}`}
-            />
-            <button
-              type="button"
-              className="toggle-visibility"
-              onClick={toggleApiKeyVisibility}
-              aria-label={showApiKey ? "Hide API key" : "Show API key"}
-            >
-              {showApiKey ? "🙈" : "👁️"}
-            </button>
-            {apiKey && (
-              <span className="api-key-status">
-                {getApiKeyStatusIcon()}
-              </span>
-            )}
-          </div>
-          {apiKey && apiKeyStatus !== 'unknown' && (
-            <div className={`api-key-status-message ${apiKeyStatus}`}>
-              {getApiKeyStatusMessage()}
+          <input
+            id="wpscan-api-key"
+            type="password"
+            placeholder="Enter your WPScan API key"
+            onChange={(e) => onApiKeyChange(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <h3>Website Selection</h3>
+        
+        <div className="filter-controls">
+          <label>Filter Websites:</label>
+          <select onChange={(e) => onFilterChange(e.target.value as 'all' | 'wordpress' | 'other')}>
+            <option value="all">All Websites</option>
+            <option value="wordpress">WordPress Only</option>
+            <option value="other">Non-WordPress</option>
+          </select>
+        </div>
+
+        <div className="selection-controls">
+          <button onClick={onSelectAll} className="btn-secondary">
+            Select All ({websites.length})
+          </button>
+          <button onClick={onDeselectAll} className="btn-secondary">
+            Deselect All
+          </button>
+          <span className="selection-count">
+            {selectedWebsiteIds.length} of {websites.length} selected
+          </span>
+        </div>
+
+        <div className="websites-list">
+          {websites.map(website => (
+            <div key={website.id} className="website-checkbox">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={selectedWebsiteIds.includes(website.id)}
+                  onChange={() => onWebsiteSelection(website.id)}
+                  disabled={!canScanMore(1) && !selectedWebsiteIds.includes(website.id)}
+                />
+                <span className="website-name">{website.name}</span>
+                <span className="website-url">({website.url})</span>
+                {website.isWordPress && <span className="wordpress-badge">WordPress</span>}
+              </label>
             </div>
-          )}
-          <small className="api-key-note">
-            Your API key is stored locally and never shared. Get your free API key from{' '}
-            <a href="https://wpscan.com/api" target="_blank" rel="noopener noreferrer">
-              wpscan.com/api
-            </a>
-          </small>
+          ))}
         </div>
       </div>
 
-      <div className="filter-section">
-        <h3>Website Filter</h3>
-        <div className="filter-options">
-          <label className="filter-option">
-            <input
-              type="radio"
-              name="website-filter"
-              value="all"
-              checked={filter === 'all'}
-              onChange={handleFilterChange}
-            />
-            <span>All Websites ({websites.length})</span>
-          </label>
-          <label className="filter-option">
-            <input
-              type="radio"
-              name="website-filter"
-              value="wordpress"
-              checked={filter === 'wordpress'}
-              onChange={handleFilterChange}
-            />
-            <span>WordPress Only ({websites.filter(w => w.isWordPress === true).length})</span>
-          </label>
-          <label className="filter-option">
-            <input
-              type="radio"
-              name="website-filter"
-              value="other"
-              checked={filter === 'other'}
-              onChange={handleFilterChange}
-            />
-            <span>Non-WordPress ({websites.filter(w => w.isWordPress === false).length})</span>
-          </label>
-        </div>
-      </div>
-
-      <div className="scan-actions-section">
-        <h3>Scan Actions</h3>
-        <div className="scan-buttons">
-          <button
-            className="scan-btn primary"
-            onClick={onScanSelected}
-            disabled={isScanning || filteredWebsites.length === 0 || !apiKey || apiKeyStatus === 'invalid'}
-          >
-            {isScanning ? "Scanning..." : `Scan Selected (${filteredWebsites.length})`}
-          </button>
-          <button
-            className="scan-btn secondary"
-            onClick={onScanAll}
-            disabled={isScanning || websites.length === 0 || !apiKey || apiKeyStatus === 'invalid'}
-          >
-            {isScanning ? "Scanning..." : "Scan All Websites"}
-          </button>
-        </div>
-        {!apiKey && (
-          <p className="api-key-warning">
-            ⚠️ Please enter your WPScan API key to enable scanning
-          </p>
-        )}
-        {apiKey && apiKeyStatus === 'invalid' && (
-          <p className="api-key-warning">
-            ⚠️ Please enter a valid WPScan API key to enable scanning
-          </p>
-        )}
-        {apiKey && apiKeyStatus === 'testing' && (
-          <p className="api-key-info">
-            🔄 Validating API key...
-          </p>
-        )}
+      <div className="scan-controls">
+        <button
+          onClick={onScanSelected}
+          disabled={isScanning || selectedWebsiteIds.length === 0 || !canScanMore(selectedWebsiteIds.length)}
+          className="btn-primary"
+        >
+          {isScanning ? 'Scanning...' : `Scan Selected (${selectedWebsiteIds.length})`}
+        </button>
+        
+        <button
+          onClick={onScanAll}
+          disabled={isScanning || websites.length === 0 || !canScanMore(websites.length)}
+          className="btn-secondary"
+        >
+          {isScanning ? 'Scanning...' : `Scan All Filtered (${websites.length})`}
+        </button>
       </div>
     </div>
   );
-};
+}
 
 export default WpscanSettings;
