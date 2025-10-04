@@ -3,14 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { listen } from '@tauri-apps/api/event';
 import { Website, Industry, ProjectStatus, PROJECT_STATUSES } from "../../../models/website";
 import { TauriService } from "../../../services/TauriService";
-import ExportStatusPopup from "./ExportStatusPopup/ExportStatusPopup";
-import IndustryFilter from "./IndustryFilter/IndustryFilter";
-import WebsiteCard from "./WebsiteCard/WebsiteCard";
-import WebsiteDetail from "./WebsiteDetail/WebSiteDetail";
-import WpscanResults from "./WpscanResults/WpscanResults";
-import WpscanSettings from "./WpscanSettings/WpscanSettings";
-import ProjectStatusFilter from "./ProjectStatusFilter/ProjectStatusFilter";
-import { WpscanResult } from "../../../models/WpscanResult";
+import {ExportStatusPopup, IndustryFilter, ProjectStatusFilter, WebsiteCard, WebsiteDetail} from './index'; 
 
 interface ScreenshotProgress {
   total: number;
