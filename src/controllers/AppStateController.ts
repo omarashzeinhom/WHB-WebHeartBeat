@@ -72,3 +72,5 @@ export class AppStateController {
     }));
   }
 }
+
+export type { AppState };

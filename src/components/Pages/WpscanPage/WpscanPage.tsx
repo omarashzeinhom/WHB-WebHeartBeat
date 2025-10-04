@@ -1,274 +1,388 @@
-import { useState, useEffect } from "react";
-import { Website } from "../../../models/website";
-import { TauriService } from "../../../services/TauriService";
-import { WpscanResult } from "../../../models/WpscanResult";
-import { WpscanResults, WpscanSettings } from "../..";
+// components/Pages/WpscanPage/WpscanPage.tsx
+import React, { useState } from 'react';
+import './WpscanPage.css';
+import { useWpscan } from '../../../hooks/useWpscan';
+import { WpscanResult, Plugin, Theme, User, Vulnerability } from '../../../models/WpscanResult';
 
-interface AppError {
-  message: string;
-  type: 'error' | 'warning' | 'info';
-  timestamp: Date;
-}
+export default function WpscanPage() {
+  const [url, setUrl] = useState('');
+  const [apiKey, setApiKey] = useState('');
+  const [activeTab, setActiveTab] = useState<'overview' | 'plugins' | 'themes' | 'users' | 'vulnerabilities'>('overview');
+  
+  // Fix: Update your useWpscan hook to return these properties
+  const { scanWebsite, isScanning, result, error } = useWpscan();
 
-function WpscanPage() {
-  const [websites, setWebsites] = useState<Website[]>([]);
-  const [wpscanApiKey, setWpscanApiKey] = useState<string>('');
-  const [wpscanFilter, setWpscanFilter] = useState<'all' | 'wordpress' | 'other'>('all');
-  const [wpscanResults, setWpscanResults] = useState<{ [websiteId: number]: WpscanResult }>({});
-  const [isWpscanning, setIsWpscanning] = useState(false);
-  const [errors, setErrors] = useState<AppError[]>([]);
-  const [scanLimit] = useState<number>(25);
-  const [scansUsed, setScansUsed] = useState<number>(0);
-  const [selectedWebsiteIds, setSelectedWebsiteIds] = useState<number[]>([]);
-
-  useEffect(() => {
-    loadWebsites();
-    loadScanUsage();
-  }, []);
-
-  const loadWebsites = async () => {
-    try {
-      const websitesData = await TauriService.loadWebsites();
-      setWebsites(websitesData);
-    } catch (error) {
-      console.error("Failed to load websites:", error);
-      addError("Failed to load websites");
-    }
-  };
-
-  const loadScanUsage = async () => {
-    try {
-      // This would come from your backend - for now we'll use localStorage as a simple solution
-      const today = new Date().toDateString();
-      const storedUsage = localStorage.getItem(`wpscan_usage_${today}`);
-      if (storedUsage) {
-        setScansUsed(parseInt(storedUsage));
-      } else {
-        setScansUsed(0);
-        localStorage.setItem(`wpscan_usage_${today}`, '0');
-      }
-    } catch (error) {
-      console.error("Failed to load scan usage:", error);
-    }
-  };
-
-  const addError = (message: string, type: 'error' | 'warning' | 'info' = 'error') => {
-    const error: AppError = {
-      message,
-      type,
-      timestamp: new Date(),
-    };
-    setErrors(prev => [...prev, error]);
-
-    setTimeout(() => {
-      setErrors(prev => prev.filter(e => e !== error));
-    }, 5000);
-  };
-
-  const getFilteredWebsites = (): Website[] => {
-    let filtered = websites;
+  const handleScan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('[v0] Form submitted, starting scan...');
     
-    // Apply WordPress filter
-    switch (wpscanFilter) {
-      case 'wordpress':
-        filtered = filtered.filter(website => website.isWordPress === true);
-        break;
-      case 'other':
-        filtered = filtered.filter(website => website.isWordPress === false);
-        break;
-      default:
-        // 'all' - no filter
-        break;
-    }
-
-    return filtered;
-  };
-
-  const updateScanUsage = (scans: number) => {
-    const today = new Date().toDateString();
-    const newUsage = scansUsed + scans;
-    setScansUsed(newUsage);
-    localStorage.setItem(`wpscan_usage_${today}`, newUsage.toString());
-  };
-
-  const canScanMore = (numberOfScans: number): boolean => {
-    return (scansUsed + numberOfScans) <= scanLimit;
-  };
-
-  const handleWebsiteSelection = (websiteId: number) => {
-    setSelectedWebsiteIds(prev => {
-      if (prev.includes(websiteId)) {
-        return prev.filter(id => id !== websiteId);
-      } else {
-        return [...prev, websiteId];
-      }
-    });
-  };
-
-  const handleSelectAll = () => {
-    const filteredWebsites = getFilteredWebsites();
-    setSelectedWebsiteIds(filteredWebsites.map(website => website.id));
-  };
-
-  const handleDeselectAll = () => {
-    setSelectedWebsiteIds([]);
-  };
-
-  const handleWpscanSelected = async () => {
-    if (!wpscanApiKey) {
-      addError('Please enter your WPScan API key');
+    if (!url || !apiKey) {
+      console.log('[v0] Missing URL or API key');
       return;
     }
 
-    if (selectedWebsiteIds.length === 0) {
-      addError('Please select at least one website to scan');
-      return;
-    }
-
-    if (!canScanMore(selectedWebsiteIds.length)) {
-      addError(`Daily scan limit exceeded. You can only scan ${scanLimit} websites per day.`);
-      return;
-    }
-
-    const selectedWebsites = websites.filter(website => 
-      selectedWebsiteIds.includes(website.id)
-    );
-
-    setIsWpscanning(true);
-    try {
-      for (const website of selectedWebsites) {
-        const result = await TauriService.scanWebsite(website, wpscanApiKey);
-        setWpscanResults(prev => ({
-          ...prev,
-          [website.id]: result
-        }));
-      }
-      updateScanUsage(selectedWebsites.length);
-      addError(`Successfully scanned ${selectedWebsites.length} website(s)`, 'info');
-    } catch (error) {
-      console.error('WPScan error:', error);
-      addError('Error scanning websites');
-    }
-    setIsWpscanning(false);
+    await scanWebsite(url, apiKey);
   };
 
-  const handleWpscanAll = async () => {
-    if (!wpscanApiKey) {
-      addError('Please enter your WPScan API key');
-      return;
-    }
-
-    const filteredWebsites = getFilteredWebsites();
-
-    if (filteredWebsites.length === 0) {
-      addError('No websites to scan');
-      return;
-    }
-
-    if (!canScanMore(filteredWebsites.length)) {
-      addError(`Daily scan limit exceeded. You can only scan ${scanLimit} websites per day.`);
-      return;
-    }
-
-    setIsWpscanning(true);
-    try {
-      for (const website of filteredWebsites) {
-        const result = await TauriService.scanWebsite(website, wpscanApiKey);
-        setWpscanResults(prev => ({
-          ...prev,
-          [website.id]: result
-        }));
-      }
-      updateScanUsage(filteredWebsites.length);
-      addError(`Successfully scanned ${filteredWebsites.length} website(s)`, 'info');
-    } catch (error) {
-      console.error('WPScan error:', error);
-      addError('Error scanning websites');
-    }
-    setIsWpscanning(false);
+  const getTotalVulnerabilities = (result: WpscanResult) => {
+    let total = result.vulnerabilities.length;
+    result.plugins.forEach((p: Plugin) => total += p.vulnerabilities.length);
+    result.themes.forEach((t: Theme) => total += t.vulnerabilities.length);
+    return total;
   };
+
+  const getSeverityClass = (severity?: string | null) => {
+    if (!severity) return 'severity-unknown';
+    const lower = severity.toLowerCase();
+    if (lower.includes('critical')) return 'severity-critical';
+    if (lower.includes('high')) return 'severity-high';
+    if (lower.includes('medium')) return 'severity-medium';
+    return 'severity-low';
+  };
+
+  const renderPluginItem = (plugin: Plugin, idx: number) => (
+    <div key={idx} className="item-card">
+      <div className="item-header">
+        <h4>{plugin.name}</h4>
+        {plugin.vulnerabilities.length > 0 && (
+          <span className="badge badge-danger">
+            {plugin.vulnerabilities.length} vulnerabilities
+          </span>
+        )}
+      </div>
+      <p className="item-meta">
+        Slug: <code>{plugin.slug}</code>
+        {plugin.version && <> | Version: <strong>{plugin.version}</strong></>}
+      </p>
+      
+      {plugin.vulnerabilities.length > 0 && (
+        <div className="vulnerabilities-list">
+          {plugin.vulnerabilities.map((vuln: Vulnerability, vIdx: number) => (
+            <div key={vIdx} className="vulnerability-item">
+              <div className="vuln-header">
+                <strong>{vuln.title}</strong>
+                {vuln.severity && (
+                  <span className={`severity-badge ${getSeverityClass(vuln.severity)}`}>
+                    {vuln.severity}
+                  </span>
+                )}
+              </div>
+              {vuln.vuln_type && <p>Type: {vuln.vuln_type}</p>}
+              {vuln.fixed_in && <p>Fixed in version: <strong>{vuln.fixed_in}</strong></p>}
+              {vuln.references.length > 0 && (
+                <div className="references">
+                  <strong>References:</strong>
+                  <ul>
+                    {vuln.references.map((ref: string, rIdx: number) => (
+                      <li key={rIdx}>
+                        <a href={ref} target="_blank" rel="noopener noreferrer">{ref}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderThemeItem = (theme: Theme, idx: number) => (
+    <div key={idx} className="item-card">
+      <div className="item-header">
+        <h4>{theme.name}</h4>
+        {theme.vulnerabilities.length > 0 && (
+          <span className="badge badge-danger">
+            {theme.vulnerabilities.length} vulnerabilities
+          </span>
+        )}
+      </div>
+      <p className="item-meta">
+        Slug: <code>{theme.slug}</code>
+        {theme.version && <> | Version: <strong>{theme.version}</strong></>}
+      </p>
+      
+      {theme.vulnerabilities.length > 0 && (
+        <div className="vulnerabilities-list">
+          {theme.vulnerabilities.map((vuln: Vulnerability, vIdx: number) => (
+            <div key={vIdx} className="vulnerability-item">
+              <div className="vuln-header">
+                <strong>{vuln.title}</strong>
+                {vuln.severity && (
+                  <span className={`severity-badge ${getSeverityClass(vuln.severity)}`}>
+                    {vuln.severity}
+                  </span>
+                )}
+              </div>
+              {vuln.vuln_type && <p>Type: {vuln.vuln_type}</p>}
+              {vuln.fixed_in && <p>Fixed in version: <strong>{vuln.fixed_in}</strong></p>}
+              {vuln.references.length > 0 && (
+                <div className="references">
+                  <strong>References:</strong>
+                  <ul>
+                    {vuln.references.map((ref: string, rIdx: number) => (
+                      <li key={rIdx}>
+                        <a href={ref} target="_blank" rel="noopener noreferrer">{ref}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderUserItem = (user: User, idx: number) => (
+    <div key={idx} className="item-card">
+      <h4>{user.login}</h4>
+      <p className="item-meta">
+        ID: {user.id}
+        {user.display_name && <> | Name: {user.display_name}</>}
+      </p>
+    </div>
+  );
+
+  const renderVulnerabilityItem = (vuln: Vulnerability, idx: number) => (
+    <div key={idx} className="vulnerability-item">
+      <div className="vuln-header">
+        <strong>{vuln.title}</strong>
+        {vuln.severity && (
+          <span className={`severity-badge ${getSeverityClass(vuln.severity)}`}>
+            {vuln.severity}
+          </span>
+        )}
+      </div>
+      {vuln.vuln_type && <p>Type: {vuln.vuln_type}</p>}
+      {vuln.fixed_in && <p>Fixed in version: <strong>{vuln.fixed_in}</strong></p>}
+      {vuln.references.length > 0 && (
+        <div className="references">
+          <strong>References:</strong>
+          <ul>
+            {vuln.references.map((ref: string, rIdx: number) => (
+              <li key={rIdx}>
+                <a href={ref} target="_blank" rel="noopener noreferrer">{ref}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="wpscan-page">
       <div className="wpscan-header">
         <h1>WordPress Security Scanner</h1>
-        <p>Scan your WordPress websites for security vulnerabilities using WPScan API</p>
-        
-        {/* Scan Usage Display */}
-        <div className="scan-usage">
-          <div className="usage-info">
-            <span>Daily Scan Usage: </span>
-            <strong>{scansUsed} / {scanLimit}</strong>
-            <span className="usage-text"> websites scanned today</span>
-          </div>
-          <div className="usage-bar">
-            <div 
-              className="usage-progress"
-              style={{ 
-                width: `${(scansUsed / scanLimit) * 100}%`,
-                backgroundColor: scansUsed >= scanLimit ? '#e74c3c' : '#3498db'
-              }}
-            ></div>
-          </div>
-          {scansUsed >= scanLimit && (
-            <div className="limit-warning">
-              ⚠️ Daily scan limit reached. You can scan more websites tomorrow.
-            </div>
-          )}
-        </div>
+        <p>Scan WordPress sites for vulnerabilities using WPScan database</p>
       </div>
 
-      {/* Error Display */}
-      {errors.length > 0 && (
-        <div className="error-container">
-          {errors.map((error, index) => (
-            <div key={`${error.timestamp.getTime()}-${index}`} className={`error-message error-${error.type}`}>
-              <div className="error-content">
-                <span className="error-icon">
-                  {error.type === 'error' && '❌'}
-                  {error.type === 'warning' && '⚠️'}
-                  {error.type === 'info' && 'ℹ️'}
-                </span>
-                <span className="error-text">{error.message}</span>
-                <span className="error-time">
-                  {error.timestamp.toLocaleTimeString()}
-                </span>
-              </div>
-              <button
-                className="error-close"
-                onClick={() => setErrors(prev => prev.filter(e => e !== error))}
-                aria-label="Close error"
-              >
-                ×
-              </button>
-            </div>
-          ))}
+      <form onSubmit={handleScan} className="scan-form">
+        <div className="form-group">
+          <label htmlFor="url">WordPress Site URL</label>
+          <input
+            id="url"
+            type="url"
+            placeholder="https://example.com"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            disabled={isScanning}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="apiKey">WPScan API Key</label>
+          <input
+            id="apiKey"
+            type="password"
+            placeholder="Enter your WPScan API key"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            disabled={isScanning}
+            required
+          />
+          <small>Get your free API key at <a href="https://wpscan.com/api" target="_blank" rel="noopener noreferrer">wpscan.com/api</a></small>
+        </div>
+
+        <button type="submit" disabled={isScanning} className="scan-button">
+          {isScanning ? 'Scanning...' : 'Start Scan'}
+        </button>
+      </form>
+
+      {error && (
+        <div className="error-message">
+          <strong>Error:</strong> {error}
         </div>
       )}
 
-      <div className="wpscan-content">
-        <WpscanSettings
-          onApiKeyChange={setWpscanApiKey}
-          onFilterChange={setWpscanFilter}
-          onScanSelected={handleWpscanSelected}
-          onScanAll={handleWpscanAll}
-          websites={getFilteredWebsites()}
-          isScanning={isWpscanning}
-          selectedWebsiteIds={selectedWebsiteIds}
-          onWebsiteSelection={handleWebsiteSelection}
-          onSelectAll={handleSelectAll}
-          onDeselectAll={handleDeselectAll}
-          scanLimit={scanLimit}
-          scansUsed={scansUsed}
-        />
+      {result && (
+        <div className="results-container">
+          <div className="results-header">
+            <h2>Scan Results for {result.url}</h2>
+            <span className="scan-date">{new Date(result.scan_date).toLocaleString()}</span>
+          </div>
 
-        <WpscanResults
-          results={wpscanResults}
-          websites={websites}
-        />
-      </div>
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-value">{result.wordpress_version || 'Unknown'}</div>
+              <div className="stat-label">WordPress Version</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-value">{result.plugins.length}</div>
+              <div className="stat-label">Plugins Found</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-value">{result.themes.length}</div>
+              <div className="stat-label">Themes Found</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-value">{result.users.length}</div>
+              <div className="stat-label">Users Found</div>
+            </div>
+            <div className="stat-card stat-card-danger">
+              <div className="stat-value">{getTotalVulnerabilities(result)}</div>
+              <div className="stat-label">Total Vulnerabilities</div>
+            </div>
+          </div>
+
+          <div className="tabs">
+            <button 
+              className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              Overview
+            </button>
+            <button 
+              className={`tab ${activeTab === 'plugins' ? 'active' : ''}`}
+              onClick={() => setActiveTab('plugins')}
+            >
+              Plugins ({result.plugins.length})
+            </button>
+            <button 
+              className={`tab ${activeTab === 'themes' ? 'active' : ''}`}
+              onClick={() => setActiveTab('themes')}
+            >
+              Themes ({result.themes.length})
+            </button>
+            <button 
+              className={`tab ${activeTab === 'users' ? 'active' : ''}`}
+              onClick={() => setActiveTab('users')}
+            >
+              Users ({result.users.length})
+            </button>
+            <button 
+              className={`tab ${activeTab === 'vulnerabilities' ? 'active' : ''}`}
+              onClick={() => setActiveTab('vulnerabilities')}
+            >
+              Core Vulnerabilities ({result.vulnerabilities.length})
+            </button>
+          </div>
+
+          <div className="tab-content">
+            {activeTab === 'overview' && (
+              <div className="overview-tab">
+                <h3>Scan Summary</h3>
+                <div className="summary-section">
+                  <h4>WordPress Core</h4>
+                  <p>Version: <strong>{result.wordpress_version || 'Unknown'}</strong></p>
+                  <p>Core Vulnerabilities: <strong className={result.vulnerabilities.length > 0 ? 'text-danger' : 'text-success'}>
+                    {result.vulnerabilities.length}
+                  </strong></p>
+                </div>
+
+                <div className="summary-section">
+                  <h4>Plugins</h4>
+                  <p>Total Plugins: <strong>{result.plugins.length}</strong></p>
+                  <p>Vulnerable Plugins: <strong className="text-danger">
+                    {result.plugins.filter((p: Plugin) => p.vulnerabilities.length > 0).length}
+                  </strong></p>
+                </div>
+
+                <div className="summary-section">
+                  <h4>Themes</h4>
+                  <p>Total Themes: <strong>{result.themes.length}</strong></p>
+                  <p>Vulnerable Themes: <strong className="text-danger">
+                    {result.themes.filter((t: Theme) => t.vulnerabilities.length > 0).length}
+                  </strong></p>
+                </div>
+
+                <div className="summary-section">
+                  <h4>Security Recommendations</h4>
+                  <ul>
+                    {result.vulnerabilities.length > 0 && (
+                      <li className="text-danger">Update WordPress core to the latest version</li>
+                    )}
+                    {result.plugins.some((p: Plugin) => p.vulnerabilities.length > 0) && (
+                      <li className="text-danger">Update or remove vulnerable plugins</li>
+                    )}
+                    {result.themes.some((t: Theme) => t.vulnerabilities.length > 0) && (
+                      <li className="text-danger">Update or remove vulnerable themes</li>
+                    )}
+                    {result.users.length > 0 && (
+                      <li className="text-warning">Review user accounts and permissions</li>
+                    )}
+                    {getTotalVulnerabilities(result) === 0 && (
+                      <li className="text-success">No known vulnerabilities found!</li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'plugins' && (
+              <div className="plugins-tab">
+                {result.plugins.length === 0 ? (
+                  <p className="empty-state">No plugins detected</p>
+                ) : (
+                  <div className="items-list">
+                    {result.plugins.map(renderPluginItem)}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'themes' && (
+              <div className="themes-tab">
+                {result.themes.length === 0 ? (
+                  <p className="empty-state">No themes detected</p>
+                ) : (
+                  <div className="items-list">
+                    {result.themes.map(renderThemeItem)}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'users' && (
+              <div className="users-tab">
+                {result.users.length === 0 ? (
+                  <p className="empty-state">No users detected</p>
+                ) : (
+                  <div className="items-list">
+                    {result.users.map(renderUserItem)}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'vulnerabilities' && (
+              <div className="vulnerabilities-tab">
+                {result.vulnerabilities.length === 0 ? (
+                  <p className="empty-state">No core vulnerabilities found</p>
+                ) : (
+                  <div className="vulnerabilities-list">
+                    {result.vulnerabilities.map(renderVulnerabilityItem)}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-export default WpscanPage;

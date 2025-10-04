@@ -1,6 +1,6 @@
 // hooks/useAppState.ts
 import { useState } from 'react';
-import { AppState, AppStateController } from '../controllers/AppStateController';
+import {  AppState, AppStateController } from '../controllers/AppStateController';
 
 const initialState: AppState = {
   websites: [],

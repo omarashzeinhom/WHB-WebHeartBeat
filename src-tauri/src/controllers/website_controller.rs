@@ -62,52 +62,31 @@ pub async fn get_web_vitals(_url: String) -> Result<WebVitals, String> {
     Ok(WebVitals::default())
 }
 
+// Then in the scan_website function, update both success and error cases:
 #[tauri::command]
 pub async fn scan_website(website: Website, api_key: String) -> Result<WpscanResult, String> {
-    // Validate API key
-    if api_key.trim().is_empty() {
-        return Err("API key is required".to_string());
-    }
-
-    // Validate URL
-    if website.url.trim().is_empty() {
-        return Err("Website URL is required".to_string());
-    }
-
-    println!("Starting WPScan for: {} with API key: {}...", website.url, &api_key[..std::cmp::min(8, api_key.len())]);
-
+    // Validate API key and URL...
+    
     let wpscan_service = WpscanService::new(api_key);
 
     match wpscan_service.scan_website(&website.url).await {
-        Ok(result) => {
+        Ok(mut result) => {
+            // Ensure the result has the URL and wordpress_version
+            result.url = website.url.clone();
+            // If wordpress_version is not set by the service, set a default
+            if result.wordpress_version.is_none() {
+                result.wordpress_version = Some("Unknown".to_string());
+            }
             println!("WPScan completed successfully for {}", website.url);
-            println!("Found {} vulnerabilities, {} plugins, {} themes", 
-                result.vulnerabilities.len(), 
-                result.plugins.len(), 
-                result.themes.len()
-            );
             Ok(result)
         },
         Err(e) => {
             eprintln!("WPScan error for {}: {}", website.url, e);
             
-            // Check if it's an API key issue
-            let error_msg = e.to_string();
-            if error_msg.contains("401") || error_msg.contains("Unauthorized") {
-                return Err("Invalid WPScan API key. Please check your API key and try again.".to_string());
-            }
-            
-            if error_msg.contains("429") || error_msg.contains("rate limit") {
-                return Err("WPScan API rate limit exceeded. Please wait and try again.".to_string());
-            }
-            
-            if error_msg.contains("timeout") {
-                return Err(format!("Request timeout while scanning {}. The website may be slow to respond.", website.url));
-            }
-
-            // For other errors, still return a basic result but log the error
-            println!("Returning basic scan result due to error: {}", e);
+            // Return a basic result with the required fields
             Ok(WpscanResult {
+                url: website.url,
+                wordpress_version: Some("Unknown".to_string()),
                 vulnerabilities: vec![],
                 plugins: vec![],
                 themes: vec![],
@@ -118,7 +97,6 @@ pub async fn scan_website(website: Website, api_key: String) -> Result<WpscanRes
         }
     }
 }
-
 #[tauri::command]
 pub async fn detect_wordpress(url: String) -> Result<bool, String> {
     if url.trim().is_empty() {

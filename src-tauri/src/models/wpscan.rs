@@ -1,7 +1,10 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+// In your models/wpscan.rs file, update the WpscanResult struct:
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct WpscanResult {
+    pub url: String,
+    pub wordpress_version: Option<String>,
     pub vulnerabilities: Vec<Vulnerability>,
     pub plugins: Vec<Plugin>,
     pub themes: Vec<Theme>,
@@ -10,47 +13,37 @@ pub struct WpscanResult {
     pub is_wordpress: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Vulnerability {
-    pub id: String,
-    pub title: String,
-    pub description: String,
-    pub severity: String,
-    pub cve: Option<String>,
-    pub references: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Plugin {
     pub name: String,
-    pub version: String,
+    pub version: Option<String>,
     pub vulnerabilities: Vec<Vulnerability>,
+    pub slug: String, // Add this field
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Theme {
     pub name: String,
-    pub version: String,
+    pub version: Option<String>,
     pub vulnerabilities: Vec<Vulnerability>,
+    pub slug: String, // Add this field
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
-    pub id: u32,
-    pub login: String,
-    pub display_name: String,
+    pub id: u32, // Change from i32 to u32
+    pub login: String, // Change from username to login
+    pub display_name: Option<String>, // Change from name to display_name
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct WpscanApiResponse {
-    pub target_url: String,
-    pub target_ip: Option<String>,
-    pub effective_url: Option<String>,
-    pub interesting_entries: Vec<String>,
-    pub plugins: Option<serde_json::Value>,
-    pub themes: Option<serde_json::Value>,
-    pub users: Option<serde_json::Value>,
-    pub version: Option<serde_json::Value>,
-    pub main_theme: Option<serde_json::Value>,
-    pub vulns: Option<serde_json::Value>,
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Vulnerability {
+    pub id: String, // Add this field
+    pub title: String,
+    pub description: Option<String>, // Add this field
+    pub vuln_type: Option<String>,
+    pub severity: Option<String>,
+    pub fixed_in: Option<String>,
+    pub references: Vec<String>,
+    pub cve: Option<String>, // Add this field
 }

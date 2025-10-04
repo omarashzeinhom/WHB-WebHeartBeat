@@ -1,8 +1,9 @@
 // hooks/useScreenshots.ts
 import { useEffect } from 'react';
 import { ScreenshotController } from '../controllers/ScreenshotController';
-import { AppStateController, ScreenshotProgress } from '../controllers/AppStateController';
+import { AppStateController} from '../controllers/AppStateController';
 import { Website } from '../models/website';
+import { ScreenshotProgress } from '../models/ScreenshotProgress';
 
 export const useScreenshots = (
   websites: Website[],

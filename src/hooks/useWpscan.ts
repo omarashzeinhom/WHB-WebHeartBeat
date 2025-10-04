@@ -1,87 +1,51 @@
 // hooks/useWpscan.ts
-import { AppStateController } from '../controllers/AppStateController';
-import { WpscanController } from '../controllers/wspscanController';
-import { Website } from '../models/website';
+import { useState } from 'react';
 import { WpscanResult } from '../models/WpscanResult';
+import { invoke } from '@tauri-apps/api/core';
 
-export const useWpscan = (
-  websites: Website[],
-  controller: AppStateController,
-  wpscanApiKey: string,
-  wpscanFilter: 'all' | 'wordpress' | 'other',
-  wpscanResults: { [websiteId: number]: WpscanResult },
-  _isWpscanning: boolean
-) => {
-  const validateApiKey = () => {
-    if (!wpscanApiKey.trim()) {
-      throw new Error('Please enter your WPScan API key');
-    }
-  };
+export const useWpscan = () => {
+  const [isScanning, setIsScanning] = useState(false);
+  const [result, setResult] = useState<WpscanResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleWpscanSelected = async () => {
+  const scanWebsite = async (url: string, apiKey: string) => {
+    setIsScanning(true);
+    setError(null);
+    setResult(null);
+
     try {
-      validateApiKey();
-
-      const filteredWebsites = WpscanController.getFilteredWebsites(websites, wpscanFilter);
-
-      if (filteredWebsites.length === 0) {
-        throw new Error('No websites match the selected filter');
-      }
-
-      controller.setIsWpscanning(true);
-
-      const results = await WpscanController.scanMultipleWebsites(
-        filteredWebsites,
-        wpscanApiKey,
-        (website, result) => {
-          controller.setWpscanResults({
-            ...wpscanResults,
-            [website.id]: result
-          });
-        }
-      );
+      // Create a complete website object with all required fields
+      const website = { 
+        url, 
+        id: 0, 
+        name: url, 
+        industry: '', 
+        vitals: null,
+        status: null,
+        lastChecked: null,
+        projectStatus: 'wip',
+        favorite: false, // Add this field
+        screenshot: null,
+        isWordPress: false
+      };
       
-      controller.setWpscanResults({ ...wpscanResults, ...results });
-    } catch (error) {
-      console.error('WPScan error:', error);
-      throw error;
-    } finally {
-      controller.setIsWpscanning(false);
-    }
-  };
-
-  const handleWpscanAll = async () => {
-    try {
-      validateApiKey();
-
-      if (websites.length === 0) {
-        throw new Error('No websites to scan');
-      }
-
-      controller.setIsWpscanning(true);
-
-      const results = await WpscanController.scanMultipleWebsites(
-        websites,
-        wpscanApiKey,
-        (website, result) => {
-          controller.setWpscanResults({
-            ...wpscanResults,
-            [website.id]: result
-          });
-        }
-      );
+      const scanResult: WpscanResult = await invoke('scan_website', { 
+        website, 
+        apiKey 
+      });
       
-      controller.setWpscanResults({ ...wpscanResults, ...results });
-    } catch (error) {
-      console.error('WPScan error:', error);
-      throw error;
+      setResult(scanResult);
+    } catch (err) {
+      setError(err as string);
     } finally {
-      controller.setIsWpscanning(false);
+      setIsScanning(false);
     }
   };
 
   return {
-    handleWpscanSelected,
-    handleWpscanAll,
+    scanWebsite,
+    isScanning,
+    result,
+    error
   };
 };

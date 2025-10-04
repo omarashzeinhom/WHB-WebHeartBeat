@@ -104,13 +104,19 @@ export class TauriService {
       throw new Error('Website URL is required');
     }
 
+    // Ensure the website object has all required fields including favorite
+    const completeWebsite: Website = {
+      ...website,
+      favorite: website.favorite !== undefined ? website.favorite : false
+    };
+
     try {
       console.log(`Starting WPScan for: ${website.name} (${website.url})`);
       
-      const result = await invoke('scan_website', { website, apiKey }) as WpscanResult;
+      const result = await invoke('scan_website', { website: completeWebsite, apiKey }) as WpscanResult;
       
       console.log(`WPScan completed for ${website.name}:`, {
-        isWordPress: result.isWordPress,
+        isWordPress: result.is_wordpress,
         vulnerabilities: result.vulnerabilities.length,
         plugins: result.plugins.length,
         themes: result.themes.length,

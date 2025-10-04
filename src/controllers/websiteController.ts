@@ -1,3 +1,4 @@
+// services/WebsiteController.ts
 import { Website } from "../models/website";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -97,7 +98,7 @@ export class WebsiteController {
     }
   }
 
-  // Frontend-only methods remain the same...
+  // Updated createWebsite method with favorite field
   static createWebsite(url: string): Website {
     try {
       return {
@@ -109,7 +110,7 @@ export class WebsiteController {
         lastChecked: null,
         industry: "general",
         projectStatus: "wip",
-        favorite: false,
+        favorite: false, // Add this field
         screenshot: null,
         isWordPress: false
       };
