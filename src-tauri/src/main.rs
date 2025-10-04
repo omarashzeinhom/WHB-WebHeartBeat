@@ -25,6 +25,7 @@ fn main() {
             controllers::website_controller::scan_website,
             controllers::website_controller::detect_wordpress,
             controllers::website_controller::update_website_industry,
+            controllers::website_controller::update_website_project_status,
             controllers::screenshot_controller::take_screenshot,
             controllers::screenshot_controller::take_bulk_screenshots,
             controllers::screenshot_controller::cancel_bulk_screenshots

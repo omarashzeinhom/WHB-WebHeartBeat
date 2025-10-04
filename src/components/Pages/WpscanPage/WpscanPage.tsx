@@ -12,13 +12,12 @@ interface AppError {
 
 function WpscanPage() {
   const [websites, setWebsites] = useState<Website[]>([]);
-  const [loading, setLoading] = useState(false);
   const [wpscanApiKey, setWpscanApiKey] = useState<string>('');
   const [wpscanFilter, setWpscanFilter] = useState<'all' | 'wordpress' | 'other'>('all');
   const [wpscanResults, setWpscanResults] = useState<{ [websiteId: number]: WpscanResult }>({});
   const [isWpscanning, setIsWpscanning] = useState(false);
   const [errors, setErrors] = useState<AppError[]>([]);
-  const [scanLimit, setScanLimit] = useState<number>(25);
+  const [scanLimit] = useState<number>(25);
   const [scansUsed, setScansUsed] = useState<number>(0);
   const [selectedWebsiteIds, setSelectedWebsiteIds] = useState<number[]>([]);
 
@@ -187,10 +186,6 @@ function WpscanPage() {
       addError('Error scanning websites');
     }
     setIsWpscanning(false);
-  };
-
-  const getSelectedWebsites = () => {
-    return websites.filter(website => selectedWebsiteIds.includes(website.id));
   };
 
   return (

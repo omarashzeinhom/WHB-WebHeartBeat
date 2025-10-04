@@ -46,10 +46,5 @@ impl StorageService {
 
         Ok(())
     }
-    pub fn export_websites(&self) -> Result<String, std::io::Error> {
-        let mut file = File::open(&self.file_path)?;
-        let mut contents = String::new();
-        file.read_to_string(&mut contents)?;
-        Ok(contents)
-    }
+
 }
