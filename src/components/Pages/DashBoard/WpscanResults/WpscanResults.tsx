@@ -1,7 +1,7 @@
 // components/Pages/Dashboard/WpscanResults/WpscanResults.tsx
 import React from 'react';
 import { Website } from '../../../../models/website';
-import { WpscanResult, Vulnerability, Theme, Plugin } from '../../../../models/WpscanResult';
+import { WpscanResult, Vulnerability as WpscanVulnerability, Theme, Plugin } from '../../../../models/WpscanResult';
 import './WpscanResults.css';
 
 interface WpscanResultsProps {
@@ -9,29 +9,34 @@ interface WpscanResultsProps {
   websites: Website[];
 }
 
-// Fix: Add proper typing for vulnerability parameter
-const VulnerabilityItem: React.FC<{ vulnerability: Vulnerability; index: number }> = ({ vulnerability, index }) => (
-  <div key={index} className="vulnerability-item">
-    <span className="severity-badge severity-{vulnerability.severity}">
-      {vulnerability.severity.toUpperCase()}
-    </span>
-    <span className="vuln-title">{vulnerability.title}</span>
-    {vulnerability.cve && <span className="cve-badge">{vulnerability.cve}</span>}
-  </div>
-);
+// Fix: Use WpscanVulnerability to avoid conflict with Website's Vulnerability
+const VulnerabilityItem: React.FC<{ vulnerability: WpscanVulnerability; index: number }> = ({ vulnerability, index }) => {
+  // Fix: Handle optional severity and provide fallback
+  const severity = vulnerability.severity || 'unknown';
+  
+  return (
+    <div key={index} className="vulnerability-item">
+      <span className={`severity-badge severity-${severity.toLowerCase()}`}>
+        {severity.toUpperCase()}
+      </span>
+      <span className="vuln-title">{vulnerability.title}</span>
+      {vulnerability.cve && <span className="cve-badge">{vulnerability.cve}</span>}
+    </div>
+  );
+};
 
 // Fix: Use the correct Plugin type from models
 const PluginItem: React.FC<{ plugin: Plugin }> = ({ plugin }) => (
   <div className="plugin-item">
     <div className="plugin-header">
       <span className="plugin-name">{plugin.name}</span>
-      <span className="plugin-version">v{plugin.version}</span>
+      {plugin.version && <span className="plugin-version">v{plugin.version}</span>}
     </div>
     {/* Fix: Add proper check for vulnerabilities array */}
     {plugin.vulnerabilities && plugin.vulnerabilities.length > 0 && (
       <div className="plugin-vulnerabilities">
         <span className="vuln-count">{plugin.vulnerabilities.length} vulnerabilities</span>
-        {plugin.vulnerabilities.map((vuln: Vulnerability, index: number) => (
+        {plugin.vulnerabilities.map((vuln: WpscanVulnerability, index: number) => (
           <VulnerabilityItem key={index} vulnerability={vuln} index={index} />
         ))}
       </div>
@@ -44,13 +49,13 @@ const ThemeItem: React.FC<{ themeData: Theme }> = ({ themeData }) => (
   <div className="theme-item">
     <div className="theme-header">
       <span className="theme-name">{themeData.name}</span>
-      <span className="theme-version">v{themeData.version}</span>
+      {themeData.version && <span className="theme-version">v{themeData.version}</span>}
     </div>
     {/* Fix: Add proper check for vulnerabilities array */}
     {themeData.vulnerabilities && themeData.vulnerabilities.length > 0 && (
       <div className="theme-vulnerabilities">
         <span className="vuln-count">{themeData.vulnerabilities.length} vulnerabilities</span>
-        {themeData.vulnerabilities.map((vuln: Vulnerability, index: number) => (
+        {themeData.vulnerabilities.map((vuln: WpscanVulnerability, index: number) => (
           <VulnerabilityItem key={index} vulnerability={vuln} index={index} />
         ))}
       </div>
@@ -69,6 +74,11 @@ const WpscanResults: React.FC<WpscanResultsProps> = ({ results, websites }) => {
     );
   }
 
+  // Helper function to count vulnerabilities by severity
+  const countVulnerabilitiesBySeverity = (vulnerabilities: WpscanVulnerability[], severity: string) => {
+    return vulnerabilities.filter(v => (v.severity || '').toLowerCase() === severity.toLowerCase()).length;
+  };
+
   return (
     <div className="wpscan-results">
       <h3>Security Scan Results</h3>
@@ -81,37 +91,44 @@ const WpscanResults: React.FC<WpscanResultsProps> = ({ results, websites }) => {
           <div key={websiteId} className="website-scan-result">
             <div className="scan-header">
               <h4>{website.name}</h4>
-              <span className={`scan-status ${result.isWordPress ? 'wordpress' : 'non-wordpress'}`}>
-                {result.isWordPress ? 'WordPress' : 'Non-WordPress'}
+              <span className={`scan-status ${result.is_wordpress ? 'wordpress' : 'non-wordpress'}`}>
+                {result.is_wordpress ? 'WordPress' : 'Non-WordPress'}
               </span>
               <span className="scan-date">
-                Scanned: {new Date(result.scanDate).toLocaleDateString()}
+                Scanned: {new Date(result.scan_date).toLocaleDateString()}
               </span>
             </div>
+
+            {/* WordPress Version */}
+            {result.wordpress_version && (
+              <div className="wordpress-version">
+                WordPress Version: <strong>{result.wordpress_version}</strong>
+              </div>
+            )}
 
             {/* Vulnerabilities Summary */}
             <div className="vulnerabilities-summary">
               <div className="summary-item critical">
                 <span className="count">
-                  {result.vulnerabilities.filter(v => v.severity === 'critical').length}
+                  {countVulnerabilitiesBySeverity(result.vulnerabilities, 'critical')}
                 </span>
                 <span className="label">Critical</span>
               </div>
               <div className="summary-item high">
                 <span className="count">
-                  {result.vulnerabilities.filter(v => v.severity === 'high').length}
+                  {countVulnerabilitiesBySeverity(result.vulnerabilities, 'high')}
                 </span>
                 <span className="label">High</span>
               </div>
               <div className="summary-item medium">
                 <span className="count">
-                  {result.vulnerabilities.filter(v => v.severity === 'medium').length}
+                  {countVulnerabilitiesBySeverity(result.vulnerabilities, 'medium')}
                 </span>
                 <span className="label">Medium</span>
               </div>
               <div className="summary-item low">
                 <span className="count">
-                  {result.vulnerabilities.filter(v => v.severity === 'low').length}
+                  {countVulnerabilitiesBySeverity(result.vulnerabilities, 'low')}
                 </span>
                 <span className="label">Low</span>
               </div>
@@ -149,7 +166,9 @@ const WpscanResults: React.FC<WpscanResultsProps> = ({ results, websites }) => {
                   {result.users.map((user, index) => (
                     <div key={index} className="user-item">
                       <span className="user-login">{user.login}</span>
-                      <span className="user-display-name">{user.displayName}</span>
+                      {user.display_name && (
+                        <span className="user-display-name">({user.display_name})</span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -161,7 +180,7 @@ const WpscanResults: React.FC<WpscanResultsProps> = ({ results, websites }) => {
               <div className="direct-vulnerabilities">
                 <h5>Direct Vulnerabilities ({result.vulnerabilities.length})</h5>
                 <div className="vulnerabilities-list">
-                  {result.vulnerabilities.map((vuln: Vulnerability, index: number) => (
+                  {result.vulnerabilities.map((vuln: WpscanVulnerability, index: number) => (
                     <VulnerabilityItem key={index} vulnerability={vuln} index={index} />
                   ))}
                 </div>

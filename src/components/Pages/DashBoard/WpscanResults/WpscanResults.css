@@ -272,3 +272,254 @@
 [data-theme="dark"] .user-display-name {
   color: var(--text-secondary-dark);
 }
+
+/* components/Pages/Dashboard/WpscanResults/WpscanResults.css */
+.wpscan-results {
+  padding: 1rem;
+}
+
+.no-results {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.website-scan-result {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background: #fafafa;
+}
+
+.scan-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.scan-header h4 {
+  margin: 0;
+  color: #333;
+}
+
+.scan-status {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: bold;
+}
+
+.scan-status.wordpress {
+  background-color: #4caf50;
+  color: white;
+}
+
+.scan-status.non-wordpress {
+  background-color: #ff9800;
+  color: white;
+}
+
+.scan-date {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.wordpress-version {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: #e8f5e8;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.vulnerabilities-summary {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 6px;
+  min-width: 60px;
+}
+
+.summary-item.critical {
+  background-color: #f44336;
+  color: white;
+}
+
+.summary-item.high {
+  background-color: #ff9800;
+  color: white;
+}
+
+.summary-item.medium {
+  background-color: #ffeb3b;
+  color: #333;
+}
+
+.summary-item.low {
+  background-color: #8bc34a;
+  color: white;
+}
+
+.summary-item .count {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.summary-item .label {
+  font-size: 0.75rem;
+}
+
+.plugins-section,
+.themes-section,
+.users-section,
+.direct-vulnerabilities {
+  margin-bottom: 1.5rem;
+}
+
+.plugins-section h5,
+.themes-section h5,
+.users-section h5,
+.direct-vulnerabilities h5 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.25rem;
+}
+
+.plugin-item,
+.theme-item {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: white;
+}
+
+.plugin-header,
+.theme-header {
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.plugin-name,
+.theme-name {
+  font-weight: bold;
+  flex: 1;
+}
+
+.plugin-version,
+.theme-version {
+  background: #e3f2fd;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: #1976d2;
+}
+
+.plugin-vulnerabilities,
+.theme-vulnerabilities {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 0.5rem;
+}
+
+.vuln-count {
+  display: block;
+  font-size: 0.8rem;
+  color: #d32f2f;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.vulnerability-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  margin-bottom: 0.25rem;
+  background: #f9f9f9;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.severity-badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.severity-critical {
+  background-color: #f44336;
+  color: white;
+}
+
+.severity-high {
+  background-color: #ff9800;
+  color: white;
+}
+
+.severity-medium {
+  background-color: #ffeb3b;
+  color: #333;
+}
+
+.severity-low {
+  background-color: #8bc34a;
+  color: white;
+}
+
+.severity-unknown {
+  background-color: #9e9e9e;
+  color: white;
+}
+
+.vuln-title {
+  flex: 1;
+}
+
+.cve-badge {
+  background: #673ab7;
+  color: white;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-family: monospace;
+}
+
+.users-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.user-login {
+  font-weight: bold;
+}
+
+.user-display-name {
+  color: #666;
+  font-style: italic;
+}
