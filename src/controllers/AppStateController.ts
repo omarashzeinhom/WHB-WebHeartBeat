@@ -1,31 +1,8 @@
 // controllers/AppStateController.ts
+import { AppState } from "../models/AppState";
+import { ScreenshotProgress } from "../models/ScreenshotProgress";
 import { Website, } from "../models/website";
 import { WpscanResult } from "../models/WpscanResult";
-
-export interface AppState {
-  websites: Website[];
-  loading: boolean;
-  screenshotLoading: boolean;
-  activeTab: 'dashboard' | 'add' | 'wpscan';
-  cloudProvider: string | null;
-  syncFrequency: number;
-  theme: 'light' | 'dark';
-  searchResults: Website[];
-  screenshotProgress: ScreenshotProgress | null;
-  wpscanApiKey: string;
-  wpscanFilter: 'all' | 'wordpress' | 'other';
-  wpscanResults: { [websiteId: number]: WpscanResult };
-  isWpscanning: boolean;
-}
-
-export interface ScreenshotProgress {
-  total: number;
-  completed: number;
-  current_website: string;
-  current_id: number;
-  is_complete: boolean;
-  errors: string[];
-}
 
 export class AppStateController {
   private setState: React.Dispatch<React.SetStateAction<AppState>>;

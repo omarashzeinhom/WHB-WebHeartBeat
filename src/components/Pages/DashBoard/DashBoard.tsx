@@ -4,21 +4,8 @@ import { listen } from '@tauri-apps/api/event';
 import { Website, Industry, ProjectStatus, PROJECT_STATUSES } from "../../../models/website";
 import { TauriService } from "../../../services/TauriService";
 import {ExportStatusPopup, IndustryFilter, ProjectStatusFilter, WebsiteCard, WebsiteDetail} from './index'; 
-
-interface ScreenshotProgress {
-  total: number;
-  completed: number;
-  current_website: string;
-  current_id: number;
-  is_complete: boolean;
-  errors: string[];
-}
-
-interface AppError {
-  message: string;
-  type: 'error' | 'warning' | 'info';
-  timestamp: Date;
-}
+import { AppError } from "../../../hooks/useErrorHandler";
+import { ScreenshotProgress } from "../../../models/ScreenshotProgress";
 
 function DashBoard() {
   const [websites, setWebsites] = useState<Website[]>([]);

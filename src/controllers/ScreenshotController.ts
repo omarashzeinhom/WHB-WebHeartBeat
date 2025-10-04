@@ -1,8 +1,8 @@
 // controllers/ScreenshotController.ts
 import { TauriService } from "../services/TauriService";
 import { Website } from "../models/website";
-import { ScreenshotProgress } from "./AppStateController";
 import { listen } from '@tauri-apps/api/event';
+import { ScreenshotProgress } from "../models/ScreenshotProgress";
 
 export class ScreenshotController {
   private onProgressUpdate: (progress: ScreenshotProgress | null) => void;
