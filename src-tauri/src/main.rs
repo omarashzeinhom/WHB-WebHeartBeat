@@ -28,7 +28,14 @@ fn main() {
             controllers::website_controller::update_website_project_status,
             controllers::screenshot_controller::take_screenshot,
             controllers::screenshot_controller::take_bulk_screenshots,
-            controllers::screenshot_controller::cancel_bulk_screenshots
+            controllers::screenshot_controller::cancel_bulk_screenshots,
+            controllers::cloud_controller::start_google_drive_auth,
+            controllers::cloud_controller::complete_google_drive_auth,
+            controllers::cloud_controller::backup_to_google_drive,
+            controllers::cloud_controller::is_google_drive_authenticated,
+            controllers::cloud_controller::disconnect_google_drive,
+            controllers::cloud_controller::backup_local,
+            controllers::cloud_controller::open_backup_folder
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

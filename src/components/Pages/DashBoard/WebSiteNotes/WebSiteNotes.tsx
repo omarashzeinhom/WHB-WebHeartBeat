@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Globe, Lock, FileText, Shield, AlertTriangle, Save, Plus, Trash2 } from 'lucide-react';
 import './WebsiteNotes.css';
 
@@ -10,58 +10,71 @@ interface WebsiteNotesProps {
 const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => {
   const [activeTab, setActiveTab] = useState<'dns' | 'access' | 'general' | 'security' | 'report'>('dns');
   const [hasChanges, setHasChanges] = useState(false);
+  const [currentNotes, setCurrentNotes] = useState(() => {
+    const defaultNotes = {
+      dnsHistory: [],
+      projectAccess: {
+        credentials: [],
+        accessNotes: '',
+        warningAcknowledged: false
+      },
+      generalNotes: '',
+      security: {
+        vulnerabilities: [],
+        openPorts: [],
+        exposedInfo: '',
+        securityScanResults: ''
+      },
+      report: {
+        summary: '',
+        performance: '',
+        security: '',
+        recommendations: '',
+        generatedDate: new Date().toISOString()
+      },
+      lastUpdated: new Date().toISOString()
+    };
+    return notes || defaultNotes;
+  });
 
-  const defaultNotes = {
-    dnsHistory: [],
-    projectAccess: {
-      credentials: [],
-      accessNotes: '',
-      warningAcknowledged: false
-    },
-    generalNotes: '',
-    security: {
-      vulnerabilities: [],
-      openPorts: [],
-      exposedInfo: '',
-      securityScanResults: ''
-    },
-    report: {
-      summary: '',
-      performance: '',
-      security: '',
-      recommendations: '',
-      generatedDate: new Date().toISOString()
-    },
-    lastUpdated: new Date().toISOString()
-  };
-
-  const currentNotes = notes || defaultNotes;
+  // Update local state when props change
+  useEffect(() => {
+    if (notes) {
+      setCurrentNotes(notes);
+    }
+  }, [notes]);
 
   const handleSave = () => {
-    onNotesChange({
+    const updatedNotes = {
       ...currentNotes,
       lastUpdated: new Date().toISOString()
-    });
+    };
+    onNotesChange(updatedNotes);
     setHasChanges(false);
   };
 
   const handleFieldChange = (section: string, field: string, value: any) => {
+    const updatedNotes = { ...currentNotes };
+    
     if (section === 'generalNotes') {
-      const updatedNotes = {
-        ...currentNotes,
-        generalNotes: value
-      };
-      onNotesChange(updatedNotes);
+      updatedNotes.generalNotes = value;
+    } else if (section.includes('.')) {
+      // Handle nested fields like security.exposedInfo
+      const [parent, child] = section.split('.');
+      if (updatedNotes[parent]) {
+        updatedNotes[parent] = {
+          ...updatedNotes[parent],
+          [child]: value
+        };
+      }
     } else {
-      const updatedNotes = {
-        ...currentNotes,
-        [section]: {
-          ...currentNotes[section],
-          [field]: value
-        }
+      updatedNotes[section] = {
+        ...updatedNotes[section],
+        [field]: value
       };
-      onNotesChange(updatedNotes);
     }
+    
+    setCurrentNotes(updatedNotes);
     setHasChanges(true);
   };
 
@@ -70,7 +83,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
       ...currentNotes,
       [section]: items
     };
-    onNotesChange(updatedNotes);
+    setCurrentNotes(updatedNotes);
     setHasChanges(true);
   };
 
@@ -82,20 +95,43 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
         [subsection]: items
       }
     };
-    onNotesChange(updatedNotes);
+    setCurrentNotes(updatedNotes);
     setHasChanges(true);
   };
 
-  // DNS History Tab - Fixed field names
+  // Save when switching tabs if there are changes
+  const handleTabChange = (tab: 'dns' | 'access' | 'general' | 'security' | 'report') => {
+    if (hasChanges) {
+      handleSave();
+    }
+    setActiveTab(tab);
+  };
+
+  // Auto-save after 2 seconds of inactivity
+  useEffect(() => {
+    if (!hasChanges) return;
+
+    const timeoutId = setTimeout(() => {
+      handleSave();
+    }, 2000);
+
+    return () => clearTimeout(timeoutId);
+  }, [hasChanges, currentNotes]);
+
+  // DNS History Tab
   const DNSHistoryTab = () => (
     <div className="notes-tab-content">
       <div className="tab-header">
         <h3>DNS Records History</h3>
-        <button className="add-btn" onClick={() => handleArrayChange('dnsHistory', [...(currentNotes.dnsHistory || []), {
-          type: 'A',
-          value: '',
-          lastChecked: new Date().toISOString()
-        }])}>
+        <button className="add-btn" onClick={() => handleArrayChange('dnsHistory', [
+          ...(currentNotes.dnsHistory || []),
+          {
+            type: 'A',
+            value: '',
+            ttl: 300,
+            lastChecked: new Date().toISOString()
+          }
+        ])}>
           <Plus size={16} /> Add Record
         </button>
       </div>
@@ -110,7 +146,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
                 value={record.type || 'A'}
                 onChange={(e) => {
                   const updated = [...currentNotes.dnsHistory];
-                  updated[index].type = e.target.value;
+                  updated[index] = { ...updated[index], type: e.target.value };
                   handleArrayChange('dnsHistory', updated);
                 }}
               >
@@ -120,8 +156,6 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
                 <option value="CNAME">CNAME Record</option>
                 <option value="NS">NS Record</option>
                 <option value="AAAA">AAAA Record</option>
-                <option value="PTR">PTR Record</option>
-                <option value="SRV">SRV Record</option>
               </select>
               <input
                 type="text"
@@ -129,18 +163,21 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
                 value={record.value || ''}
                 onChange={(e) => {
                   const updated = [...currentNotes.dnsHistory];
-                  updated[index].value = e.target.value;
-                  updated[index].lastChecked = new Date().toISOString();
+                  updated[index] = { 
+                    ...updated[index], 
+                    value: e.target.value,
+                    lastChecked: new Date().toISOString()
+                  };
                   handleArrayChange('dnsHistory', updated);
                 }}
               />
               <input
                 type="number"
                 placeholder="TTL (seconds)"
-                value={record.ttl || ''}
+                value={record.ttl || 300}
                 onChange={(e) => {
                   const updated = [...currentNotes.dnsHistory];
-                  updated[index].ttl = parseInt(e.target.value) || 300;
+                  updated[index] = { ...updated[index], ttl: parseInt(e.target.value) || 300 };
                   handleArrayChange('dnsHistory', updated);
                 }}
               />
@@ -149,7 +186,9 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
               </span>
               <button
                 className="remove-btn"
-                onClick={() => handleArrayChange('dnsHistory', currentNotes.dnsHistory.filter((_: any, i: number) => i !== index))}
+                onClick={() => handleArrayChange('dnsHistory', 
+                  currentNotes.dnsHistory.filter((_: any, i: number) => i !== index)
+                )}
               >
                 <Trash2 size={14} />
               </button>
@@ -160,14 +199,14 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
     </div>
   );
 
-  // Project Access Tab
+  // Other tabs remain the same but use currentNotes instead of notes...
   const ProjectAccessTab = () => (
     <div className="notes-tab-content">
       <div className="security-warning">
         <AlertTriangle size={20} />
         <div>
           <strong>Security Notice</strong>
-          <p>This feature is under development. Please save your passwords in a dedicated password manager for security reasons.</p>
+          <p>Never store real passwords here. Use a dedicated password manager for security.</p>
         </div>
       </div>
 
@@ -193,43 +232,44 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
               value={cred.service || ''}
               onChange={(e) => {
                 const updated = [...(currentNotes.projectAccess?.credentials || [])];
-                updated[index].service = e.target.value;
+                updated[index] = { ...updated[index], service: e.target.value };
                 handleNestedArrayChange('projectAccess', 'credentials', updated);
               }}
             />
             <input
               type="text"
-              placeholder="Username"
+              placeholder="Username/Email"
               value={cred.username || ''}
               onChange={(e) => {
                 const updated = [...(currentNotes.projectAccess?.credentials || [])];
-                updated[index].username = e.target.value;
+                updated[index] = { ...updated[index], username: e.target.value };
                 handleNestedArrayChange('projectAccess', 'credentials', updated);
               }}
             />
             <input
               type="text"
-              placeholder="URL"
+              placeholder="Login URL"
               value={cred.url || ''}
               onChange={(e) => {
                 const updated = [...(currentNotes.projectAccess?.credentials || [])];
-                updated[index].url = e.target.value;
+                updated[index] = { ...updated[index], url: e.target.value };
                 handleNestedArrayChange('projectAccess', 'credentials', updated);
               }}
             />
             <textarea
-              placeholder="Notes"
+              placeholder="Notes (e.g., password hints, 2FA info)"
               value={cred.notes || ''}
               onChange={(e) => {
                 const updated = [...(currentNotes.projectAccess?.credentials || [])];
-                updated[index].notes = e.target.value;
+                updated[index] = { ...updated[index], notes: e.target.value };
                 handleNestedArrayChange('projectAccess', 'credentials', updated);
               }}
             />
             <button
               className="remove-btn"
               onClick={() => handleNestedArrayChange('projectAccess', 'credentials',
-                (currentNotes.projectAccess?.credentials || []).filter((_: any, i: number) => i !== index))}
+                (currentNotes.projectAccess?.credentials || []).filter((_: any, i: number) => i !== index)
+              )}
             >
               <Trash2 size={14} />
             </button>
@@ -240,7 +280,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
       <div className="access-notes">
         <h4>Access Notes</h4>
         <textarea
-          placeholder="Additional access information..."
+          placeholder="Additional access information, client instructions, etc."
           value={currentNotes.projectAccess?.accessNotes || ''}
           onChange={(e) => handleFieldChange('projectAccess', 'accessNotes', e.target.value)}
           rows={4}
@@ -249,13 +289,12 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
     </div>
   );
 
-  // General Notes Tab
   const GeneralNotesTab = () => (
     <div className="notes-tab-content">
       <h3>General Website Notes</h3>
       <textarea
         className="general-notes-textarea"
-        placeholder="Enter general notes about this website..."
+        placeholder="Enter general notes about this website: client requirements, project scope, deadlines, etc."
         value={currentNotes.generalNotes || ''}
         onChange={(e) => handleFieldChange('generalNotes', '', e.target.value)}
         rows={15}
@@ -263,7 +302,6 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
     </div>
   );
 
-  // Security Tab
   const SecurityTab = () => (
     <div className="notes-tab-content">
       <div className="tab-header">
@@ -294,7 +332,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
               value={vuln.name || ''}
               onChange={(e) => {
                 const updated = [...(currentNotes.security?.vulnerabilities || [])];
-                updated[index].name = e.target.value;
+                updated[index] = { ...updated[index], name: e.target.value };
                 handleNestedArrayChange('security', 'vulnerabilities', updated);
               }}
             />
@@ -302,7 +340,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
               value={vuln.severity || 'medium'}
               onChange={(e) => {
                 const updated = [...(currentNotes.security?.vulnerabilities || [])];
-                updated[index].severity = e.target.value;
+                updated[index] = { ...updated[index], severity: e.target.value };
                 handleNestedArrayChange('security', 'vulnerabilities', updated);
               }}
             >
@@ -315,7 +353,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
               value={vuln.status || 'open'}
               onChange={(e) => {
                 const updated = [...(currentNotes.security?.vulnerabilities || [])];
-                updated[index].status = e.target.value;
+                updated[index] = { ...updated[index], status: e.target.value };
                 handleNestedArrayChange('security', 'vulnerabilities', updated);
               }}
             >
@@ -324,18 +362,19 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
               <option value="fixed">Fixed</option>
             </select>
             <textarea
-              placeholder="Description"
+              placeholder="Description and remediation steps"
               value={vuln.description || ''}
               onChange={(e) => {
                 const updated = [...(currentNotes.security?.vulnerabilities || [])];
-                updated[index].description = e.target.value;
+                updated[index] = { ...updated[index], description: e.target.value };
                 handleNestedArrayChange('security', 'vulnerabilities', updated);
               }}
             />
             <button
               className="remove-btn"
               onClick={() => handleNestedArrayChange('security', 'vulnerabilities',
-                (currentNotes.security?.vulnerabilities || []).filter((_: any, i: number) => i !== index))}
+                (currentNotes.security?.vulnerabilities || []).filter((_: any, i: number) => i !== index)
+              )}
             >
               <Trash2 size={14} />
             </button>
@@ -344,18 +383,17 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
       </div>
 
       <div className="security-notes">
-        <h4>Security Scan Results & Exposed Information</h4>
+        <h4>Security Scan Results</h4>
         <textarea
-          placeholder="Enter security scan results and exposed information..."
+          placeholder="Enter security scan results, exposed information, and security recommendations..."
           value={currentNotes.security?.exposedInfo || ''}
-          onChange={(e) => handleFieldChange('security', 'exposedInfo', e.target.value)}
+          onChange={(e) => handleFieldChange('security.exposedInfo', '', e.target.value)}
           rows={6}
         />
       </div>
     </div>
   );
 
-  // Report Tab with Export Functionality
   const ReportTab = () => (
     <div className="notes-tab-content">
       <div className="tab-header">
@@ -428,7 +466,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
       linkElement.setAttribute('href', dataUri);
       linkElement.setAttribute('download', exportFileDefaultName);
       linkElement.click();
-    } else if (format === 'pdf') {
+    } else {
       alert('PDF export feature will be implemented. For now, use the JSON export.');
     }
   };
@@ -437,27 +475,47 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
     <div className="website-notes">
       <div className="notes-header">
         <h3>Website Notes & Documentation</h3>
-        {hasChanges && (
-          <button className="save-btn" onClick={handleSave}>
-            <Save size={16} /> Save Changes
-          </button>
-        )}
+        <div className="header-actions">
+          {hasChanges && (
+            <button className="save-btn" onClick={handleSave}>
+              <Save size={16} /> Save Changes
+            </button>
+          )}
+          <span className="last-saved">
+            Last updated: {new Date(currentNotes.lastUpdated).toLocaleString()}
+          </span>
+        </div>
       </div>
 
       <div className="notes-tabs">
-        <button className={activeTab === 'dns' ? 'active' : ''} onClick={() => setActiveTab('dns')}>
+        <button 
+          className={activeTab === 'dns' ? 'active' : ''} 
+          onClick={() => handleTabChange('dns')}
+        >
           <Globe size={16} /> DNS History
         </button>
-        <button className={activeTab === 'access' ? 'active' : ''} onClick={() => setActiveTab('access')}>
+        <button 
+          className={activeTab === 'access' ? 'active' : ''} 
+          onClick={() => handleTabChange('access')}
+        >
           <Lock size={16} /> Project Access
         </button>
-        <button className={activeTab === 'general' ? 'active' : ''} onClick={() => setActiveTab('general')}>
+        <button 
+          className={activeTab === 'general' ? 'active' : ''} 
+          onClick={() => handleTabChange('general')}
+        >
           <FileText size={16} /> General Notes
         </button>
-        <button className={activeTab === 'security' ? 'active' : ''} onClick={() => setActiveTab('security')}>
+        <button 
+          className={activeTab === 'security' ? 'active' : ''} 
+          onClick={() => handleTabChange('security')}
+        >
           <Shield size={16} /> Security
         </button>
-        <button className={activeTab === 'report' ? 'active' : ''} onClick={() => setActiveTab('report')}>
+        <button 
+          className={activeTab === 'report' ? 'active' : ''} 
+          onClick={() => handleTabChange('report')}
+        >
           <FileText size={16} /> Status Report
         </button>
       </div>
@@ -468,10 +526,6 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
         {activeTab === 'general' && <GeneralNotesTab />}
         {activeTab === 'security' && <SecurityTab />}
         {activeTab === 'report' && <ReportTab />}
-      </div>
-
-      <div className="notes-footer">
-        <span>Last updated: {new Date(currentNotes.lastUpdated).toLocaleString()}</span>
       </div>
     </div>
   );

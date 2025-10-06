@@ -3,6 +3,21 @@ import { Website } from "../models/website";
 import { WpscanResult } from "../models/WpscanResult";
 import { invoke } from "@tauri-apps/api/core";
 
+
+export interface CloudBackupResult {
+  success: boolean;
+  message: string;
+  backupPath?: string;
+  driveUrl?: string;
+  timestamp: string;
+}
+
+export interface GoogleAuthResult {
+  success: boolean;
+  message: string;
+  authUrl?: string;
+}
+
 export class TauriService {
   // Add API key validation method
   static async testWpscanApiKey(apiKey: string): Promise<boolean> {
@@ -112,9 +127,9 @@ export class TauriService {
 
     try {
       console.log(`Starting WPScan for: ${website.name} (${website.url})`);
-      
+
       const result = await invoke('scan_website', { website: completeWebsite, apiKey }) as WpscanResult;
-      
+
       console.log(`WPScan completed for ${website.name}:`, {
         isWordPress: result.is_wordpress,
         vulnerabilities: result.vulnerabilities.length,
@@ -126,7 +141,7 @@ export class TauriService {
       return result;
     } catch (error) {
       console.error('WPScan error:', error);
-      
+
       // Re-throw with more specific error messages
       const errorMessage = error as string;
       if (errorMessage.includes('Invalid WPScan API key')) {
@@ -195,4 +210,86 @@ export class TauriService {
       };
     }
   }
+
+  static async startGoogleDriveAuth(): Promise<GoogleAuthResult> {
+    try {
+      return await invoke('start_google_drive_auth') as GoogleAuthResult;
+    } catch (error) {
+      console.error("Google Drive auth failed:", error);
+      throw new Error(`Google Drive auth failed: ${error}`);
+    }
+  }
+
+  static async completeGoogleDriveAuth(code: string, state: string): Promise<CloudBackupResult> {
+    try {
+      return await invoke('complete_google_drive_auth', { code, state }) as CloudBackupResult;
+    } catch (error) {
+      console.error("Google Drive auth completion failed:", error);
+      throw new Error(`Google Drive auth completion failed: ${error}`);
+    }
+  }
+
+  static async backupToGoogleDrive(websites: Website[]): Promise<CloudBackupResult> {
+    try {
+      return await invoke('backup_to_google_drive', { websites }) as CloudBackupResult;
+    } catch (error) {
+      console.error("Google Drive backup failed:", error);
+      throw new Error(`Google Drive backup failed: ${error}`);
+    }
+  }
+
+  static async isGoogleDriveAuthenticated(): Promise<boolean> {
+    try {
+      return await invoke('is_google_drive_authenticated') as boolean;
+    } catch (error) {
+      console.error("Failed to check auth status:", error);
+      return false;
+    }
+  }
+
+  static async disconnectGoogleDrive(): Promise<void> {
+    try {
+      await invoke('disconnect_google_drive');
+    } catch (error) {
+      console.error("Failed to disconnect:", error);
+      throw new Error(`Failed to disconnect: ${error}`);
+    }
+  }
+
+  // Local backup
+  static async backupLocal(websites: Website[]): Promise<CloudBackupResult> {
+    try {
+      return await invoke('backup_local', { websites }) as CloudBackupResult;
+    } catch (error) {
+      console.error("Local backup failed:", error);
+      throw new Error(`Local backup failed: ${error}`);
+    }
+  }
+
+  static async openBackupFolder(): Promise<void> {
+    try {
+      await invoke('open_backup_folder');
+    } catch (error) {
+      console.error("Failed to open backup folder:", error);
+      throw new Error(`Failed to open backup folder: ${error}`);
+    }
+  }
+  static async restoreFromCloud(backupPath: string): Promise<Website[]> {
+    try {
+      return await invoke('restore_from_cloud', { backupPath }) as Website[];
+    } catch (error) {
+      console.error("Cloud restore failed:", error);
+      throw new Error(`Cloud restore failed: ${error}`);
+    }
+  }
+
+  static async listCloudBackups(): Promise<any[]> {
+    try {
+      return await invoke('list_cloud_backups') as any[];
+    } catch (error) {
+      console.error("Failed to list backups:", error);
+      throw new Error(`Failed to list backups: ${error}`);
+    }
+  }
 }
+

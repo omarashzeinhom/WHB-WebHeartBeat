@@ -3,22 +3,24 @@ import { useNavigate } from "@tanstack/react-router";
 import { listen } from '@tauri-apps/api/event';
 import { Website, Industry, ProjectStatus, PROJECT_STATUSES } from "../../../models/website";
 import { TauriService } from "../../../services/TauriService";
-import {ExportStatusPopup, IndustryFilter, ProjectStatusFilter, WebsiteCard, WebsiteDetail} from './index'; 
+import { ExportStatusPopup, IndustryFilter, ProjectStatusFilter, WebsiteCard, WebsiteDetail } from './index';
 import { AppError } from "../../../hooks/useErrorHandler";
 import { ScreenshotProgress } from "../../../models/ScreenshotProgress";
+import { Cloud } from "lucide-react";
+import CloudBackup from "../../CloudBackUp/CloudBackup"; // Make sure this path is correct
 
 function DashBoard() {
   const [websites, setWebsites] = useState<Website[]>([]);
   const [loading, setLoading] = useState(false);
   const [screenshotLoading, setScreenshotLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'wpscan'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'wpscan' | 'backup'>('dashboard');
   const [cloudProvider, setCloudProvider] = useState<string | null>(null);
   const [syncFrequency, setSyncFrequency] = useState<number>(0);
   const [screenshotProgress, setScreenshotProgress] = useState<ScreenshotProgress | null>(null);
 
   const [errors, setErrors] = useState<AppError[]>([]);
   const [selectedIndustry, setSelectedIndustry] = useState<Industry | 'all'>('all');
-  const [selectedProjectStatus, setSelectedProjectStatus] = useState<ProjectStatus | 'all'>('all'); // NEW
+  const [selectedProjectStatus, setSelectedProjectStatus] = useState<ProjectStatus | 'all'>('all');
 
   const [selectedWebsite, setSelectedWebsite] = useState<Website | null>(null);
   const [isExportPopupOpen, setIsExportPopupOpen] = useState(false);
@@ -33,8 +35,7 @@ function DashBoard() {
     exportFormat: 'json',
     exportTime: new Date(),
   });
-  const [customStatuses, setCustomStatuses] = useState<{ value: ProjectStatus; label: string; color: string }[]>([]); // NEW
-
+  const [customStatuses, setCustomStatuses] = useState<{ value: ProjectStatus; label: string; color: string }[]>([]);
 
   const navigate = useNavigate();
 
@@ -233,6 +234,7 @@ function DashBoard() {
       w.id === id ? { ...w, favorite: !w.favorite } : w
     ));
   };
+
   const handleProjectStatusChange = async (id: number, projectStatus: ProjectStatus) => {
     setWebsites(prevWebsites =>
       prevWebsites.map(website =>
@@ -261,7 +263,6 @@ function DashBoard() {
     return [...PROJECT_STATUSES, ...customStatuses];
   };
 
-
   const getIndustryFilteredWebsites = (): Website[] => {
     let filtered = websites;
     if (selectedIndustry !== 'all') {
@@ -272,8 +273,6 @@ function DashBoard() {
     }
     return filtered;
   };
-
-
 
   const handleExport = async () => {
     try {
@@ -329,7 +328,6 @@ function DashBoard() {
     navigate({ to: '/add-website' });
   };
 
-
   const handleUpdateWebsite = async (id: number, updates: Partial<Website>) => {
     setWebsites(prevWebsites =>
       prevWebsites.map(website =>
@@ -347,6 +345,14 @@ function DashBoard() {
       console.error('Failed to update website:', error);
       addError('Failed to update website notes');
     }
+  };
+
+  // Add this function to your Dashboard component
+  const handleRestoreBackup = (restoredWebsites: Website[]) => {
+    setWebsites(restoredWebsites);
+    // Also save the restored websites
+    saveWebsites(restoredWebsites);
+    alert(`Successfully restored ${restoredWebsites.length} websites!`);
   };
 
   // Main render function
@@ -377,6 +383,12 @@ function DashBoard() {
             Dashboard
           </button>
           <button
+            className={activeTab === "backup" ? "active" : ""}
+            onClick={() => setActiveTab("backup")}
+          >
+            <Cloud size={16} /> Cloud Backup
+          </button>
+          <button
             className="add-website-tab"
             onClick={navigateToAddWebsite}
           >
@@ -385,6 +397,14 @@ function DashBoard() {
         </nav>
 
         {activeTab === "dashboard" && renderDashboard()}
+        {activeTab === "backup" && (
+          <CloudBackup
+            websites={websites}
+            onRestore={handleRestoreBackup}
+          />
+        )}
+
+        {/* REMOVED DUPLICATE LINE: <Cloud size={16} /> Cloud Backup */}
 
         <div className="cloud-sync-options">
           <h3>Cloud Sync</h3>
@@ -467,8 +487,7 @@ function DashBoard() {
         onIndustryChange={setSelectedIndustry}
       />
 
-
-      {/* NEW: Project Status Filter */}
+      {/* Project Status Filter */}
       <ProjectStatusFilter
         selectedStatus={selectedProjectStatus}
         onStatusChange={setSelectedProjectStatus}
@@ -545,8 +564,6 @@ function DashBoard() {
       )}
     </div>
   );
-
-
 
   return (
     <main>
