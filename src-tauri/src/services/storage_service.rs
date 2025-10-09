@@ -34,7 +34,7 @@ impl StorageService {
         file.write_all(json.as_bytes())?;
         Ok(())
     }
-    
+
     pub fn update_website(&self, website: &Website) -> Result<(), Box<dyn std::error::Error>> {
         let mut websites = self.get_websites()?;
 
@@ -46,5 +46,4 @@ impl StorageService {
 
         Ok(())
     }
-
 }

@@ -3,6 +3,7 @@ import './WebsiteCard.css';
 import { Industry, Website, ProjectStatus, PROJECT_STATUSES } from '../../../../models/website';
 import { FavoriteFilledIcon, FavoriteIcon, ScreenshotIcon, StatusIcon, OpenLinkIcon, DeleteIcon } from '../../../../assets/icons/icons';
 import IndustrySelector from '../IndustrySelector/IndustrySelector';
+import { open } from '@tauri-apps/plugin-shell';
 
 interface WebsiteCardProps {
   website: Website;
@@ -32,6 +33,24 @@ const industries: { value: Industry; label: string; icon: string }[] = [
   { value: 'nonprofit', label: 'Non-Profit', icon: '🤝' },
   { value: 'general', label: 'General', icon: '🌍' },
 ];
+
+// Security: Validate and sanitize URLs
+const isValidUrl = (url: string): boolean => {
+  try {
+    const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+    // Only allow http and https protocols
+    return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+const formatUrl = (url: string): string => {
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return 'https://' + url;
+  }
+  return url;
+};
 
 const WebsiteCard: React.FC<WebsiteCardProps> = ({
   website,
@@ -74,7 +93,8 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
     if (target.closest('.action-btn') || 
         target.closest('.industry-selector') || 
         target.closest('.favorite-btn') ||
-        target.closest('.project-status-selector')) {
+        target.closest('.project-status-selector') ||
+        target.closest('.website-link')) {
       return;
     }
     onWebsiteClick(website);
@@ -85,9 +105,26 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
     handler();
   };
 
-  const openWebsite = (e: React.MouseEvent) => {
+  const formattedUrl = formatUrl(website.url);
+
+  // Secure link opening function using Tauri Opener plugin
+  const handleOpenLink = async (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
-    window.open(website.url, '_blank', 'noopener,noreferrer');
+    
+    // Security validation
+    if (!isValidUrl(website.url)) {
+      console.error('Invalid URL:', website.url);
+      alert('Invalid URL: Only HTTP and HTTPS links are allowed.');
+      return;
+    }
+    
+    try {
+      await open(formattedUrl);
+    } catch (error) {
+      console.error('Failed to open URL:', error);
+      alert('Failed to open link. Please check the URL and try again.');
+    }
   };
 
   return (
@@ -150,6 +187,18 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
         </span>
       </div>
 
+      {/* Website URL display - clickable using Tauri Opener */}
+      <div className="website-url">
+        <span 
+          className="website-link"
+          onClick={handleOpenLink}
+          title={`Open ${website.url}`}
+          style={{ cursor: 'pointer' }}
+        >
+          {website.url}
+        </span>
+      </div>
+
       {/* Project Status Selector (simple dropdown) */}
       <div className="project-status-section" onClick={(e) => e.stopPropagation()}>
         <select 
@@ -196,10 +245,11 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
           <span>Delete</span>
         </button>
 
+        {/* Open Link button using Tauri Opener plugin */}
         <button
-          className="action-btn"
-          onClick={openWebsite}
-          title="Open Website"
+          className="action-btn link-btn"
+          onClick={handleOpenLink}
+          title={`Open ${website.url}`}
         >
           <img src={OpenLinkIcon} alt="Open Link" />
           <span>Open Link</span>

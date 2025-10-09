@@ -1,12 +1,12 @@
+use crate::models::website::Website;
+use once_cell::sync::Lazy;
+use rand::Rng;
+use reqwest;
 use serde::{Deserialize, Serialize};
-use tauri::command;
 use std::collections::HashMap;
 use std::fs;
 use std::sync::Mutex;
-use reqwest;
-use crate::models::website::Website;
-use rand::Rng;
-use once_cell::sync::Lazy;
+use tauri::command;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CloudBackupResult {
@@ -40,19 +40,19 @@ pub async fn start_google_drive_auth() -> Result<GoogleAuthResult, String> {
     let client_id = "YOUR_CLIENT_ID"; // You'll need to set this up in Google Cloud Console
     let redirect_uri = "http://localhost:8080/auth/callback";
     let scope = "https://www.googleapis.com/auth/drive.file";
-    
+
     // Generate random state for security
     let state: String = rand::thread_rng()
         .sample_iter(&rand::distributions::Alphanumeric)
         .take(16)
         .map(char::from)
         .collect();
-    
+
     {
         let mut oauth_state = OAUTH_STATE.lock().unwrap();
         *oauth_state = Some(state.clone());
     }
-    
+
     let auth_url = format!(
         "https://accounts.google.com/o/oauth2/v2/auth?\
          client_id={}&\
@@ -64,7 +64,7 @@ pub async fn start_google_drive_auth() -> Result<GoogleAuthResult, String> {
          prompt=consent",
         client_id, redirect_uri, scope, state
     );
-    
+
     Ok(GoogleAuthResult {
         success: true,
         message: "Open this URL in your browser to authenticate".to_string(),
@@ -73,7 +73,10 @@ pub async fn start_google_drive_auth() -> Result<GoogleAuthResult, String> {
 }
 
 #[command]
-pub async fn complete_google_drive_auth(code: String, state: String) -> Result<CloudBackupResult, String> {
+pub async fn complete_google_drive_auth(
+    code: String,
+    state: String,
+) -> Result<CloudBackupResult, String> {
     // Verify state matches
     {
         let oauth_state = OAUTH_STATE.lock().unwrap();
@@ -81,13 +84,13 @@ pub async fn complete_google_drive_auth(code: String, state: String) -> Result<C
             return Err("Invalid state parameter".to_string());
         }
     }
-    
+
     let client_id = "YOUR_CLIENT_ID";
     let client_secret = "YOUR_CLIENT_SECRET"; // Get from Google Cloud Console
     let redirect_uri = "http://localhost:8080/auth/callback";
-    
+
     let token_url = "https://oauth2.googleapis.com/token";
-    
+
     let params = [
         ("client_id", client_id),
         ("client_secret", client_secret),
@@ -95,7 +98,7 @@ pub async fn complete_google_drive_auth(code: String, state: String) -> Result<C
         ("grant_type", "authorization_code"),
         ("redirect_uri", redirect_uri),
     ];
-    
+
     let client = reqwest::Client::new();
     let response = client
         .post(token_url)
@@ -103,35 +106,33 @@ pub async fn complete_google_drive_auth(code: String, state: String) -> Result<C
         .send()
         .await
         .map_err(|e| format!("Failed to get access token: {}", e))?;
-    
+
     if response.status().is_success() {
-        let token_data: serde_json::Value = response.json().await
+        let token_data: serde_json::Value = response
+            .json()
+            .await
             .map_err(|e| format!("Failed to parse token response: {}", e))?;
-        
+
         let access_token = token_data["access_token"]
             .as_str()
             .ok_or("No access token in response")?
             .to_string();
-            
-        let refresh_token = token_data["refresh_token"]
-            .as_str()
-            .map(|s| s.to_string());
-            
-        let expires_in = token_data["expires_in"]
-            .as_i64()
-            .unwrap_or(3600);
-        
+
+        let refresh_token = token_data["refresh_token"].as_str().map(|s| s.to_string());
+
+        let expires_in = token_data["expires_in"].as_i64().unwrap_or(3600);
+
         let tokens = GoogleTokens {
             access_token,
             refresh_token,
             expires_in,
         };
-        
+
         {
             let mut google_tokens = GOOGLE_TOKENS.lock().unwrap();
             *google_tokens = Some(tokens);
         }
-        
+
         Ok(CloudBackupResult {
             success: true,
             message: "Successfully authenticated with Google Drive".to_string(),
@@ -149,40 +150,44 @@ pub async fn complete_google_drive_auth(code: String, state: String) -> Result<C
 pub async fn backup_to_google_drive(websites: Vec<Website>) -> Result<CloudBackupResult, String> {
     let tokens = {
         let google_tokens = GOOGLE_TOKENS.lock().unwrap();
-        google_tokens.clone().ok_or("Not authenticated with Google Drive. Please authenticate first.")?
+        google_tokens
+            .clone()
+            .ok_or("Not authenticated with Google Drive. Please authenticate first.")?
     };
-    
+
     let backup_data = serde_json::to_string_pretty(&websites)
         .map_err(|e| format!("Failed to serialize backup: {}", e))?;
-    
+
     let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S").to_string();
     let filename = format!("website_backup_{}.json", timestamp);
-    
+
     // Upload to Google Drive
     let upload_url = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
-    
+
     let metadata = serde_json::json!({
         "name": filename,
         "mimeType": "application/json",
         "parents": ["root"] // Upload to root folder, you can specify folder ID
     });
-    
+
     let client = reqwest::Client::new();
-    
+
     // Create multipart form
     let form = reqwest::multipart::Form::new()
-        .part("metadata", 
+        .part(
+            "metadata",
             reqwest::multipart::Part::text(metadata.to_string())
                 .mime_str("application/json")
-                .map_err(|e| format!("Failed to create metadata part: {}", e))?
+                .map_err(|e| format!("Failed to create metadata part: {}", e))?,
         )
-        .part("file", 
+        .part(
+            "file",
             reqwest::multipart::Part::text(backup_data)
                 .mime_str("application/json")
                 .map_err(|e| format!("Failed to create file part: {}", e))?
-                .file_name(filename.clone())
+                .file_name(filename.clone()),
         );
-    
+
     let response = client
         .post(upload_url)
         .header("Authorization", format!("Bearer {}", tokens.access_token))
@@ -190,17 +195,19 @@ pub async fn backup_to_google_drive(websites: Vec<Website>) -> Result<CloudBacku
         .send()
         .await
         .map_err(|e| format!("Failed to upload to Google Drive: {}", e))?;
-    
+
     if response.status().is_success() {
-        let drive_response: serde_json::Value = response.json().await
+        let drive_response: serde_json::Value = response
+            .json()
+            .await
             .map_err(|e| format!("Failed to parse Drive response: {}", e))?;
-        
+
         let file_id = drive_response["id"]
             .as_str()
             .ok_or("No file ID in response")?;
-            
+
         let drive_url = format!("https://drive.google.com/file/d/{}/view", file_id);
-        
+
         Ok(CloudBackupResult {
             success: true,
             message: format!("Backup uploaded to Google Drive as: {}", filename),
@@ -238,18 +245,18 @@ pub async fn disconnect_google_drive() -> Result<(), String> {
 pub async fn backup_local(websites: Vec<Website>) -> Result<CloudBackupResult, String> {
     let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S").to_string();
     let filename = format!("website_backup_{}.json", timestamp);
-    
+
     let backup_dir = "backups";
-    fs::create_dir_all(backup_dir).map_err(|e| format!("Failed to create backup directory: {}", e))?;
-    
+    fs::create_dir_all(backup_dir)
+        .map_err(|e| format!("Failed to create backup directory: {}", e))?;
+
     let backup_path = format!("{}/{}", backup_dir, filename);
-    
+
     let backup_data = serde_json::to_string_pretty(&websites)
         .map_err(|e| format!("Failed to serialize backup: {}", e))?;
-    
-    fs::write(&backup_path, backup_data)
-        .map_err(|e| format!("Failed to write backup: {}", e))?;
-    
+
+    fs::write(&backup_path, backup_data).map_err(|e| format!("Failed to write backup: {}", e))?;
+
     Ok(CloudBackupResult {
         success: true,
         message: format!("Backup saved locally at: {}", backup_path),
@@ -262,7 +269,7 @@ pub async fn backup_local(websites: Vec<Website>) -> Result<CloudBackupResult, S
 #[command]
 pub async fn open_backup_folder() -> Result<(), String> {
     let backup_dir = "backups";
-    
+
     #[cfg(target_os = "windows")]
     {
         std::process::Command::new("explorer")
@@ -270,7 +277,7 @@ pub async fn open_backup_folder() -> Result<(), String> {
             .spawn()
             .map_err(|e| format!("Failed to open backup folder: {}", e))?;
     }
-    
+
     #[cfg(target_os = "macos")]
     {
         std::process::Command::new("open")
@@ -278,7 +285,7 @@ pub async fn open_backup_folder() -> Result<(), String> {
             .spawn()
             .map_err(|e| format!("Failed to open backup folder: {}", e))?;
     }
-    
+
     #[cfg(target_os = "linux")]
     {
         std::process::Command::new("xdg-open")
@@ -286,7 +293,7 @@ pub async fn open_backup_folder() -> Result<(), String> {
             .spawn()
             .map_err(|e| format!("Failed to open backup folder: {}", e))?;
     }
-    
+
     Ok(())
 }
 
@@ -295,7 +302,7 @@ pub async fn open_backup_folder() -> Result<(), String> {
 pub async fn list_cloud_backups() -> Result<Vec<HashMap<String, String>>, String> {
     let backup_dir = "backups";
     let mut backups = Vec::new();
-    
+
     if let Ok(entries) = fs::read_dir(backup_dir) {
         for entry in entries.flatten() {
             if let Ok(metadata) = entry.metadata() {
@@ -306,19 +313,20 @@ pub async fn list_cloud_backups() -> Result<Vec<HashMap<String, String>>, String
                             let mut backup_info = HashMap::new();
                             backup_info.insert(
                                 "filename".to_string(),
-                                path.file_name().unwrap().to_string_lossy().to_string()
+                                path.file_name().unwrap().to_string_lossy().to_string(),
                             );
-                            backup_info.insert(
-                                "path".to_string(), 
-                                path.to_string_lossy().to_string()
-                            );
-                            backup_info.insert(
-                                "size".to_string(),
-                                format!("{} bytes", metadata.len())
-                            );
+                            backup_info
+                                .insert("path".to_string(), path.to_string_lossy().to_string());
+                            backup_info
+                                .insert("size".to_string(), format!("{} bytes", metadata.len()));
                             backup_info.insert(
                                 "modified".to_string(),
-                                format!("{:?}", metadata.modified().unwrap_or(std::time::SystemTime::UNIX_EPOCH))
+                                format!(
+                                    "{:?}",
+                                    metadata
+                                        .modified()
+                                        .unwrap_or(std::time::SystemTime::UNIX_EPOCH)
+                                ),
                             );
                             backups.push(backup_info);
                         }
@@ -327,12 +335,10 @@ pub async fn list_cloud_backups() -> Result<Vec<HashMap<String, String>>, String
             }
         }
     }
-    
+
     // Sort by filename (which includes timestamp)
-    backups.sort_by(|a, b| {
-        b["filename"].cmp(&a["filename"])
-    });
-    
+    backups.sort_by(|a, b| b["filename"].cmp(&a["filename"]));
+
     Ok(backups)
 }
 
@@ -340,11 +346,15 @@ pub async fn list_cloud_backups() -> Result<Vec<HashMap<String, String>>, String
 pub async fn restore_from_cloud(backup_path: String) -> Result<Vec<Website>, String> {
     let data = fs::read_to_string(&backup_path)
         .map_err(|e| format!("Failed to read backup file: {}", e))?;
-    
-    let websites: Vec<Website> = serde_json::from_str(&data)
-        .map_err(|e| format!("Failed to parse backup: {}", e))?;
-    
-    println!("Restored {} websites from backup: {}", websites.len(), backup_path);
-    
+
+    let websites: Vec<Website> =
+        serde_json::from_str(&data).map_err(|e| format!("Failed to parse backup: {}", e))?;
+
+    println!(
+        "Restored {} websites from backup: {}",
+        websites.len(),
+        backup_path
+    );
+
     Ok(websites)
 }

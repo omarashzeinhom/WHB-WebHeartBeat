@@ -10,6 +10,7 @@ use tauri::Manager;
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
         .setup(|app| {
             let storage = StorageService::new("../websites.json".to_string());
             app.manage(storage);

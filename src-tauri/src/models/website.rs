@@ -31,12 +31,12 @@ pub struct Website {
     pub status: Option<u16>,
     pub last_checked: Option<String>,
     pub industry: String,
-    pub project_status: Option<String>,  // Add this field
+    pub project_status: Option<String>, // Add this field
     pub favorite: bool,
     pub screenshot: Option<String>,
     pub is_wordpress: Option<bool>,
-    pub description: Option<String>,     // Add this field
-    pub tags: Option<Vec<String>>,       // Add this field
+    pub description: Option<String>, // Add this field
+    pub tags: Option<Vec<String>>,   // Add this field
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

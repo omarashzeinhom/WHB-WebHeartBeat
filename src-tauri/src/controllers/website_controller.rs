@@ -32,13 +32,11 @@ pub async fn save_websites(
 #[tauri::command]
 pub async fn export_websites(storage: State<'_, StorageService>) -> Result<String, String> {
     match storage.get_websites() {
-        Ok(websites) => {
-            match serde_json::to_string_pretty(&websites) {
-                Ok(json) => Ok(json),
-                Err(e) => Err(format!("Failed to serialize websites: {}", e))
-            }
+        Ok(websites) => match serde_json::to_string_pretty(&websites) {
+            Ok(json) => Ok(json),
+            Err(e) => Err(format!("Failed to serialize websites: {}", e)),
         },
-        Err(e) => Err(format!("Failed to get websites: {}", e))
+        Err(e) => Err(format!("Failed to get websites: {}", e)),
     }
 }
 
@@ -66,7 +64,7 @@ pub async fn get_web_vitals(_url: String) -> Result<WebVitals, String> {
 #[tauri::command]
 pub async fn scan_website(website: Website, api_key: String) -> Result<WpscanResult, String> {
     // Validate API key and URL...
-    
+
     let wpscan_service = WpscanService::new(api_key);
 
     match wpscan_service.scan_website(&website.url).await {
@@ -79,10 +77,10 @@ pub async fn scan_website(website: Website, api_key: String) -> Result<WpscanRes
             }
             println!("WPScan completed successfully for {}", website.url);
             Ok(result)
-        },
+        }
         Err(e) => {
             eprintln!("WPScan error for {}: {}", website.url, e);
-            
+
             // Return a basic result with the required fields
             Ok(WpscanResult {
                 url: website.url,
@@ -120,7 +118,7 @@ pub async fn detect_wordpress(url: String) -> Result<bool, String> {
                     || text.contains("wp-json")
                     || text.contains("/wp-admin/")
                     || text.contains("wp-embed.min.js");
-                
+
                 println!("WordPress detection for {}: {}", url, is_wordpress);
                 Ok(is_wordpress)
             } else {
@@ -172,11 +170,14 @@ pub async fn update_website_project_status(
     if let Some(website) = websites.iter_mut().find(|w| w.id == id) {
         // Note: You'll need to add project_status field to your Website struct
         // For now, we'll just print it since the field might not exist yet
-        println!("Updating project status for website {}: {}", id, project_status);
-        
+        println!(
+            "Updating project status for website {}: {}",
+            id, project_status
+        );
+
         // Uncomment this line once you add project_status to your Website struct:
         // website.project_status = project_status;
-        
+
         storage
             .save_websites(&websites)
             .map_err(|e| e.to_string())?;

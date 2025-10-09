@@ -157,7 +157,7 @@
       "fcp": 0.0,
       "ttfb": 0.0
     },
-    "status": 200,
+    "status": 0,
     "last_checked": "2025-10-04T19:38:29.692336400+00:00",
     "industry": "ecommerce",
     "project_status": null,

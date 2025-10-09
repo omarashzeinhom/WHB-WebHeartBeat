@@ -31,8 +31,8 @@ pub struct Theme {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
-    pub id: u32, // Change from i32 to u32
-    pub login: String, // Change from username to login
+    pub id: u32,                      // Change from i32 to u32
+    pub login: String,                // Change from username to login
     pub display_name: Option<String>, // Change from name to display_name
 }
 
