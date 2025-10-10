@@ -18,6 +18,27 @@ export interface GoogleAuthResult {
   authUrl?: string;
 }
 
+interface ApiKeys {
+  wappalyzer?: string;
+  screenshotApi?: string;
+  googleDriveClientId?: string;
+  googleDriveClientSecret?: string;
+}
+
+interface CloudSettings {
+  provider: string;
+  autoBackup: boolean;
+  backupFrequency: number;
+  lastBackup?: string;
+}
+
+interface AppSettings {
+  apiKeys: ApiKeys;
+  cloudSettings: CloudSettings;
+  theme: 'light' | 'dark' | 'system';
+  enableNotifications: boolean;
+}
+
 export class TauriService {
   // Add API key validation method
   static async testWpscanApiKey(apiKey: string): Promise<boolean> {
@@ -291,5 +312,203 @@ export class TauriService {
       throw new Error(`Failed to list backups: ${error}`);
     }
   }
-}
+
+
+
+  // Replace the settings methods in TauriService.ts
+
+  static async saveSettings(settings: AppSettings): Promise<void> {
+    try {
+      console.log('💾 Saving settings:', settings);
+      await invoke('save_settings', { settings });
+      console.log('✅ Settings saved successfully');
+    } catch (error) {
+      console.error('❌ Failed to save settings:', error);
+      throw new Error(`Failed to save settings: ${error}`);
+    }
+  }
+
+  static async loadSettings(): Promise<AppSettings | null> {
+    try {
+      console.log('📖 Loading settings...');
+      const settings = await invoke<AppSettings | null>('load_settings');
+
+      if (settings) {
+        console.log('✅ Settings loaded:', settings);
+
+        // Validate the structure
+        if (!settings.apiKeys || !settings.cloudSettings) {
+          console.error('⚠️ Invalid settings structure, returning null');
+          return null;
+        }
+
+        return settings;
+      } else {
+        console.log('ℹ️ No settings found, returning null');
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Failed to load settings:', error);
+      // Return null instead of throwing to allow graceful fallback
+      return null;
+    }
+  }
+
+  static async getApiKey(keyName: string): Promise<string | null> {
+    try {
+      console.log(`🔑 Getting API key: ${keyName}`);
+      const key = await invoke<string | null>('get_api_key', { keyName });
+
+      if (key) {
+        console.log(`✅ API key found for: ${keyName}`);
+      } else {
+        console.log(`ℹ️ No API key found for: ${keyName}`);
+      }
+
+      return key;
+    } catch (error) {
+      console.error(`❌ Failed to get API key ${keyName}:`, error);
+      return null;
+    }
+  }
+
+  static async deleteAllSettings(): Promise<void> {
+    try {
+      console.log('🗑️ Deleting all settings...');
+      await invoke('delete_all_settings');
+      console.log('✅ All settings deleted');
+    } catch (error) {
+      console.error('❌ Failed to delete settings:', error);
+      throw new Error(`Failed to delete settings: ${error}`);
+    }
+  }
+
+  static async exportSettingsUnencrypted(): Promise<string> {
+    try {
+      console.log('📤 Exporting settings...');
+      const settingsJson = await invoke<string>('export_settings_unencrypted');
+      console.log('✅ Settings exported successfully');
+      return settingsJson;
+    } catch (error) {
+      console.error('❌ Failed to export settings:', error);
+      throw new Error(`Failed to export settings: ${error}`);
+    }
+  }
+
+  // Helper method to get default settings
+  static getDefaultSettings(): AppSettings {
+    return {
+      apiKeys: {},
+      cloudSettings: {
+        provider: 'google-drive',
+        autoBackup: false,
+        backupFrequency: 24,
+      },
+      theme: 'system',
+      enableNotifications: true,
+    };
+  }
+
+  // Wappalyzer Integration
+  static async analyzeWebsiteTech(url: string): Promise<any> {
+    try {
+      const apiKey = await this.getApiKey('wappalyzer');
+
+      if (!apiKey) {
+        throw new Error('Wappalyzer API key not configured. Please add it in Settings.');
+      }
+
+      const response = await fetch(`https://api.wappalyzer.com/lookup/v2/?urls=${encodeURIComponent(url)}`, {
+        headers: {
+          'x-api-key': apiKey,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Wappalyzer API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Failed to analyze website technology:', error);
+      throw error;
+    }
+  }
+
+  // Screenshot with API
+  // FIXED: Changed parameter from url: string to website: Website
+  static async takeScreenshotWithApi(website: Website): Promise<string> {
+    try {
+      const apiKey = await this.getApiKey('screenshot_api');
+
+      if (!apiKey) {
+        // Fallback to local screenshot method
+        const result = await this.takeScreenshot(website);
+        return result.screenshot || '';
+      }
+
+      const response = await fetch(`https://api.screenshotapi.net/screenshot`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          url: website.url,
+          width: 1280,
+          height: 720,
+          fullPage: false,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Screenshot API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.screenshotUrl || data.screenshot;
+    } catch (error) {
+      console.error('Failed to take screenshot via API:', error);
+      // Fallback to local method
+      const result = await this.takeScreenshot(website);
+      return result.screenshot || '';
+    }
+  }
+  // Google Drive Authentication with stored credentials
+  static async startGoogleDriveAuthWithStoredCredentials(): Promise<any> {
+    try {
+      const clientId = await this.getApiKey('google_drive_client_id');
+      const clientSecret = await this.getApiKey('google_drive_client_secret');
+
+      if (!clientId || !clientSecret) {
+        throw new Error('Google Drive credentials not configured. Please add them in Settings.');
+      }
+
+      return await invoke('start_google_drive_auth', { clientId, clientSecret });
+    } catch (error) {
+      console.error('Failed to start Google Drive auth:', error);
+      throw error;
+    }
+  }
+
+  // Update cloud settings after backup
+  static async updateLastBackupTime(): Promise<void> {
+    try {
+      const settings = await this.loadSettings();
+      if (settings) {
+        settings.cloudSettings.lastBackup = new Date().toISOString();
+        await this.saveSettings(settings);
+      }
+    } catch (error) {
+      console.error('Failed to update last backup time:', error);
+    }
+  }
+
+
+
+
+} //* END 
+
+
 

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WpscanRouteImport } from './routes/wpscan'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AddWebsiteRouteImport } from './routes/add-website'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WebsitesIdRouteImport } from './routes/websites.$id'
@@ -17,6 +18,11 @@ import { Route as WebsitesIdRouteImport } from './routes/websites.$id'
 const WpscanRoute = WpscanRouteImport.update({
   id: '/wpscan',
   path: '/wpscan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AddWebsiteRoute = AddWebsiteRouteImport.update({
@@ -38,12 +44,14 @@ const WebsitesIdRoute = WebsitesIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/add-website': typeof AddWebsiteRoute
+  '/settings': typeof SettingsRoute
   '/wpscan': typeof WpscanRoute
   '/websites/$id': typeof WebsitesIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/add-website': typeof AddWebsiteRoute
+  '/settings': typeof SettingsRoute
   '/wpscan': typeof WpscanRoute
   '/websites/$id': typeof WebsitesIdRoute
 }
@@ -51,20 +59,28 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/add-website': typeof AddWebsiteRoute
+  '/settings': typeof SettingsRoute
   '/wpscan': typeof WpscanRoute
   '/websites/$id': typeof WebsitesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/add-website' | '/wpscan' | '/websites/$id'
+  fullPaths: '/' | '/add-website' | '/settings' | '/wpscan' | '/websites/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/add-website' | '/wpscan' | '/websites/$id'
-  id: '__root__' | '/' | '/add-website' | '/wpscan' | '/websites/$id'
+  to: '/' | '/add-website' | '/settings' | '/wpscan' | '/websites/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/add-website'
+    | '/settings'
+    | '/wpscan'
+    | '/websites/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AddWebsiteRoute: typeof AddWebsiteRoute
+  SettingsRoute: typeof SettingsRoute
   WpscanRoute: typeof WpscanRoute
   WebsitesIdRoute: typeof WebsitesIdRoute
 }
@@ -76,6 +92,13 @@ declare module '@tanstack/react-router' {
       path: '/wpscan'
       fullPath: '/wpscan'
       preLoaderRoute: typeof WpscanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/add-website': {
@@ -105,6 +128,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AddWebsiteRoute: AddWebsiteRoute,
+  SettingsRoute: SettingsRoute,
   WpscanRoute: WpscanRoute,
   WebsitesIdRoute: WebsitesIdRoute,
 }

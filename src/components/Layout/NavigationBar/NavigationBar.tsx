@@ -145,6 +145,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
             <Link to="/" className="side-nav-link" onClick={toggleMenu}>Dashboard</Link>
             <Link to="/add-website" className="side-nav-link" onClick={toggleMenu}>Add New Website</Link>
             <Link to="/wpscan" className="side-nav-link" onClick={toggleMenu}>Security Scan</Link>
+            <Link to="/settings" className="side-nav-link" onClick={toggleMenu}>Settings</Link>
             {/*
             <a href="#" className="side-nav-link">Analytics</a>
             <a href="#" className="side-nav-link">Settings</a>

@@ -5465,6 +5465,7 @@ version = "0.1.0"
 dependencies = [
  "base64 0.13.1",
  "chrono",
+ "dirs",
  "headless_chrome",
  "once_cell",
  "rand 0.8.5",

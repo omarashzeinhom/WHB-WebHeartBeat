@@ -5,6 +5,7 @@ import ComingSoon from '../Pages/ComingSoon/ComingSoon';
 import AddWebsite from '../Pages/AddWebSite/AddWebsite';
 import DashBoard from '../Pages/DashBoard/DashBoard';
 import WpscanPage from '../Pages/WpscanPage/WpscanPage';
+import Settings from '../Pages/Settings/SettingsPage';
 const AppRouter: React.FC = () => {
   const { currentPage, pageParams } = useNavigation();
 
@@ -24,8 +25,8 @@ const AppRouter: React.FC = () => {
         return //Monitoring {...pageParams} />;
       //case 'export':
         return //<Export {...pageParams} />;
-      //case 'settings':
-        return // <Settings {...pageParams} />;
+      case 'settings':
+        return  <Settings {...pageParams} />;
       //case 'import':
       //case 'cloud-sync':
       //case 'community':
