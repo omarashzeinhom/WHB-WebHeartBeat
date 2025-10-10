@@ -121,7 +121,7 @@ return (
       onAnimationEnd={() => setAnimate(false)}
     >
       <div className="industry-btn-content">
-        <IconComponent className="industry-icon" size={18} />
+        <IconComponent className="industry-icon" size={12} />
         {!compact && <span className="industry-label">{currentIndustryData.label}</span>}
         <ChevronDown size={16} className="dropdown-arrow" />
       </div>

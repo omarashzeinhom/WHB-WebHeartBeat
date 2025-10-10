@@ -1,4 +1,5 @@
 import type React from "react"
+import { useCallback } from "react"
 import {
   ArrowLeft,
   Star,
@@ -52,6 +53,13 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
   loading,
   screenshotLoading,
 }) => {
+  // Memoize the handleNotesChange to prevent recreation on every render
+  const handleNotesChange = useCallback((updatedNotes: any) => {
+    if (website) {
+      onUpdateWebsite(website.id, { notes: updatedNotes });
+    }
+  }, [website?.id, onUpdateWebsite]);
+
   // Early return if website is not available
   if (!website) {
     return (
@@ -97,10 +105,6 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
     const IconComponent = icons[industry] || Globe
     return <IconComponent size={16} style={{ marginRight: "0.5rem" }} />
   }
-
-  const handleNotesChange = (updatedNotes: any) => {
-    onUpdateWebsite(website.id, { notes: updatedNotes });
-  };
 
   return (
     <div className="website-detail">

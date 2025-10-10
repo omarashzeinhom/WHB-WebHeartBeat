@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Globe, Lock, FileText, Shield, AlertTriangle, Save, Plus, Trash2 } from 'lucide-react';
 import './WebsiteNotes.css';
 
@@ -10,6 +10,8 @@ interface WebsiteNotesProps {
 const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => {
   const [activeTab, setActiveTab] = useState<'dns' | 'access' | 'general' | 'security' | 'report'>('dns');
   const [hasChanges, setHasChanges] = useState(false);
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
   const [currentNotes, setCurrentNotes] = useState(() => {
     const defaultNotes = {
       dnsHistory: [],
@@ -37,20 +39,30 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
     return notes || defaultNotes;
   });
 
-  // Update local state when props change
+  // Ref to hold current notes value for auto-save
+  const currentNotesRef = useRef(currentNotes);
+  const onNotesChangeRef = useRef(onNotesChange);
+
+  // Keep refs in sync
   useEffect(() => {
-    if (notes) {
-      setCurrentNotes(notes);
-    }
-  }, [notes]);
+    currentNotesRef.current = currentNotes;
+  }, [currentNotes]);
+
+  useEffect(() => {
+    onNotesChangeRef.current = onNotesChange;
+  }, [onNotesChange]);
 
   const handleSave = () => {
+    console.log('💾 Saving notes...');
+    setHasChanges(false);
+    
     const updatedNotes = {
-      ...currentNotes,
+      ...currentNotesRef.current,
       lastUpdated: new Date().toISOString()
     };
-    onNotesChange(updatedNotes);
-    setHasChanges(false);
+    
+    onNotesChangeRef.current(updatedNotes);
+    console.log('✅ Notes saved');
   };
 
   const handleFieldChange = (section: string, field: string, value: any) => {
@@ -107,16 +119,31 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
     setActiveTab(tab);
   };
 
-  // Auto-save after 2 seconds of inactivity
+  // Auto-save after 2 seconds of inactivity - ONLY depends on hasChanges
   useEffect(() => {
-    if (!hasChanges) return;
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+      autoSaveTimeoutRef.current = null;
+    }
 
-    const timeoutId = setTimeout(() => {
-      handleSave();
-    }, 2000);
+    // Only set new timeout if there are changes
+    if (hasChanges) {
+      console.log('⏱️ Setting auto-save timeout (2 seconds)');
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        console.log('💾 Auto-save triggered');
+        handleSave();
+      }, 2000);
+    }
 
-    return () => clearTimeout(timeoutId);
-  }, [hasChanges, currentNotes]);
+    // Cleanup on unmount
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+        autoSaveTimeoutRef.current = null;
+      }
+    };
+  }, [hasChanges]); // ONLY hasChanges - this is the key!
 
   // DNS History Tab
   const DNSHistoryTab = () => (
@@ -199,7 +226,6 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
     </div>
   );
 
-  // Other tabs remain the same but use currentNotes instead of notes...
   const ProjectAccessTab = () => (
     <div className="notes-tab-content">
       <div className="security-warning">

@@ -110,6 +110,7 @@
 }
 
 .website-title {
+  z-index: 0;
   color: var(--card-text-light);
   font-size: 1.4rem;
   font-weight: 600;
@@ -178,12 +179,14 @@
   margin-top: 15px;
   border-radius: 10px;
   overflow: hidden;
+  min-height: 20vh;
   border: 1px solid var(--card-border-light);
 }
 
 .website-screenshot {
   width: 100%;
-  height: 120px;
+  min-height: 120px;
+  height: auto;
   object-fit: cover;
 }
 
@@ -321,7 +324,6 @@
   align-items: flex-start;
   margin-bottom: 12px;
   position: relative;
-  z-index: 1;
 }
 
 .header-actions {

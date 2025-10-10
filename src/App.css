@@ -33,6 +33,7 @@
   --font-size-small-body: 0.875em; /* 14px / 16px */
   --line-height-small-body: 1.5; /* 21px / 14px - adjusted */
 
+  --border-radius: 4px;
   /* Light Theme Color Variables */
   --color-white-light: #000000;
   --color-background-light: #ffffff;
@@ -447,6 +448,7 @@ h6 {
 
 /* Progress Container */
 .progress-container {
+  width: 100%;
   background: var(--color-ui-background);
   border: 1px solid var(--color-border);
   border-radius: 0.75em; /* 12px */
