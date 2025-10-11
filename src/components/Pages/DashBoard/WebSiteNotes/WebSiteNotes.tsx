@@ -11,7 +11,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
   const [activeTab, setActiveTab] = useState<'dns' | 'access' | 'general' | 'security' | 'report'>('dns');
   const [hasChanges, setHasChanges] = useState(false);
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  
+
   const [currentNotes, setCurrentNotes] = useState(() => {
     const defaultNotes = {
       dnsHistory: [],
@@ -55,19 +55,19 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
   const handleSave = () => {
     console.log('💾 Saving notes...');
     setHasChanges(false);
-    
+
     const updatedNotes = {
       ...currentNotesRef.current,
       lastUpdated: new Date().toISOString()
     };
-    
+
     onNotesChangeRef.current(updatedNotes);
     console.log('✅ Notes saved');
   };
 
   const handleFieldChange = (section: string, field: string, value: any) => {
     const updatedNotes = { ...currentNotes };
-    
+
     if (section === 'generalNotes') {
       updatedNotes.generalNotes = value;
     } else if (section.includes('.')) {
@@ -85,7 +85,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
         [field]: value
       };
     }
-    
+
     setCurrentNotes(updatedNotes);
     setHasChanges(true);
   };
@@ -114,7 +114,12 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
   // Save when switching tabs if there are changes
   const handleTabChange = (tab: 'dns' | 'access' | 'general' | 'security' | 'report') => {
     if (hasChanges) {
-      handleSave();
+      const confirmSave = window.confirm('You have unsaved changes. Do you want to save them before switching tabs?');
+      if (confirmSave) {
+        handleSave();
+      } else {
+        setHasChanges(false);
+      }
     }
     setActiveTab(tab);
   };
@@ -190,8 +195,8 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
                 value={record.value || ''}
                 onChange={(e) => {
                   const updated = [...currentNotes.dnsHistory];
-                  updated[index] = { 
-                    ...updated[index], 
+                  updated[index] = {
+                    ...updated[index],
                     value: e.target.value,
                     lastChecked: new Date().toISOString()
                   };
@@ -213,7 +218,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
               </span>
               <button
                 className="remove-btn"
-                onClick={() => handleArrayChange('dnsHistory', 
+                onClick={() => handleArrayChange('dnsHistory',
                   currentNotes.dnsHistory.filter((_: any, i: number) => i !== index)
                 )}
               >
@@ -514,32 +519,32 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
       </div>
 
       <div className="notes-tabs">
-        <button 
-          className={activeTab === 'dns' ? 'active' : ''} 
+        <button
+          className={activeTab === 'dns' ? 'active' : ''}
           onClick={() => handleTabChange('dns')}
         >
           <Globe size={16} /> DNS History
         </button>
-        <button 
-          className={activeTab === 'access' ? 'active' : ''} 
+        <button
+          className={activeTab === 'access' ? 'active' : ''}
           onClick={() => handleTabChange('access')}
         >
           <Lock size={16} /> Project Access
         </button>
-        <button 
-          className={activeTab === 'general' ? 'active' : ''} 
+        <button
+          className={activeTab === 'general' ? 'active' : ''}
           onClick={() => handleTabChange('general')}
         >
           <FileText size={16} /> General Notes
         </button>
-        <button 
-          className={activeTab === 'security' ? 'active' : ''} 
+        <button
+          className={activeTab === 'security' ? 'active' : ''}
           onClick={() => handleTabChange('security')}
         >
           <Shield size={16} /> Security
         </button>
-        <button 
-          className={activeTab === 'report' ? 'active' : ''} 
+        <button
+          className={activeTab === 'report' ? 'active' : ''}
           onClick={() => handleTabChange('report')}
         >
           <FileText size={16} /> Status Report

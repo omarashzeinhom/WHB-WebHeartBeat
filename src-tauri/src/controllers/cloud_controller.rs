@@ -297,7 +297,6 @@ pub async fn open_backup_folder() -> Result<(), String> {
     Ok(())
 }
 
-// Add these missing functions for backup listing and restore
 #[command]
 pub async fn list_cloud_backups() -> Result<Vec<HashMap<String, String>>, String> {
     let backup_dir = "backups";

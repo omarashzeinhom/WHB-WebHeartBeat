@@ -1,0 +1,379 @@
+/* ImportWebsites.css - BEM Convention */
+
+/* Block: import-websites */
+.import-websites {
+  background: var(--color-ui-background);
+  border: 1px solid var(--color-border);
+  border-radius: calc(var(--border-radius) * 3);
+  padding: 2em;
+  backdrop-filter: blur(10px);
+}
+
+/* Modifier: compact */
+.import-websites--compact {
+  padding: 1.5em;
+}
+
+/* Element: header */
+.import-websites__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  margin-bottom: 1.5em;
+  padding-bottom: 1em;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.import-websites__header-icon {
+  color: var(--color-accent-red);
+}
+
+.import-websites__title {
+  margin: 0;
+  font-size: var(--font-size-h4-desktop);
+  line-height: var(--line-height-h4-desktop);
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+/* Element: content */
+.import-websites__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+}
+
+.import-websites__description {
+  font-size: var(--font-size-small-body);
+  line-height: var(--line-height-small-body);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Element: mode selection */
+.import-websites__mode {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+  padding: 1em;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+}
+
+.import-websites__radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  cursor: pointer;
+  padding: 0.5em;
+  border-radius: var(--border-radius);
+  transition: background-color 0.2s ease;
+}
+
+.import-websites__radio-label:hover {
+  background: var(--color-ui-background);
+}
+
+.import-websites__radio-input {
+  cursor: pointer;
+  width: 1.125em;
+  height: 1.125em;
+  accent-color: var(--color-accent-red);
+  flex-shrink: 0;
+}
+
+.import-websites__radio-text {
+  font-size: var(--font-size-small-body);
+  line-height: var(--line-height-small-body);
+  color: var(--color-white);
+  font-weight: 500;
+}
+
+/* Modifier: warning text */
+.import-websites__radio-text--warning {
+  color: var(--color-accent-red);
+}
+
+/* Element: file input (hidden) */
+.import-websites__file-input {
+  display: none;
+}
+
+/* Element: select button */
+.import-websites__select-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75em;
+  padding: 1em 2em;
+  background: var(--color-accent-red-gradient);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-small-body);
+  line-height: var(--line-height-small-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0.25em 0.75em rgba(231, 56, 39, 0.3);
+}
+
+.import-websites__select-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5em 1.25em rgba(231, 56, 39, 0.4);
+}
+
+.import-websites__select-btn:active {
+  transform: translateY(0);
+}
+
+/* Element: validation */
+.import-websites__validation {
+  padding: 1.5em;
+  border-radius: var(--border-radius);
+  border: 1px solid;
+}
+
+/* Modifier: valid */
+.import-websites__validation--valid {
+  background-color: rgba(34, 197, 94, 0.1);
+  border-color: #22c55e;
+}
+
+/* Modifier: invalid */
+.import-websites__validation--invalid {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: var(--color-accent-red);
+}
+
+.import-websites__validation-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  margin-bottom: 1em;
+  font-size: var(--font-size-small-body);
+  line-height: var(--line-height-small-body);
+  font-weight: 600;
+}
+
+.import-websites__validation--valid .import-websites__validation-header {
+  color: #22c55e;
+}
+
+.import-websites__validation--invalid .import-websites__validation-header {
+  color: var(--color-accent-red);
+}
+
+.import-websites__validation-body {
+  font-size: var(--font-size-small-body);
+  line-height: var(--line-height-small-body);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.import-websites__validation--valid .import-websites__validation-body {
+  color: #16a34a;
+}
+
+.import-websites__validation--invalid .import-websites__validation-body {
+  color: #dc2626;
+}
+
+.import-websites__validation-item {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+/* Modifier: warning item */
+.import-websites__validation-item--warning {
+  color: #ca8a04;
+}
+
+/* Element: actions */
+.import-websites__actions {
+  display: flex;
+  gap: 1em;
+  flex-wrap: wrap;
+}
+
+.import-websites__btn {
+  padding: 1em 2em;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-small-body);
+  line-height: var(--line-height-small-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75em;
+  flex: 1;
+  min-width: 10em;
+}
+
+/* Modifier: primary button */
+.import-websites__btn--primary {
+  background: var(--color-accent-red-gradient);
+  color: white;
+  box-shadow: 0 0.25em 0.75em rgba(231, 56, 39, 0.3);
+}
+
+.import-websites__btn--primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5em 1.25em rgba(231, 56, 39, 0.4);
+}
+
+.import-websites__btn--primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Modifier: secondary button */
+.import-websites__btn--secondary {
+  background: var(--color-background);
+  color: var(--color-white);
+  border: 1px solid var(--color-border);
+}
+
+.import-websites__btn--secondary:hover:not(:disabled) {
+  background: var(--color-ui-background);
+  border-color: var(--color-text-secondary);
+  transform: translateY(-2px);
+}
+
+.import-websites__btn--secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Element: spinner */
+.import-websites__spinner {
+  animation: import-websites-spin 1s linear infinite;
+}
+
+@keyframes import-websites-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Element: info box */
+.import-websites__info {
+  padding: 1.25em;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: var(--border-radius);
+  display: flex;
+  gap: 1em;
+  font-size: var(--font-size-small-body);
+  line-height: var(--line-height-small-body);
+}
+
+.import-websites__info-icon {
+  color: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 0.125em;
+}
+
+.import-websites__info-content {
+  flex: 1;
+  color: #1e40af;
+}
+
+.import-websites__info-content strong {
+  display: block;
+  margin-bottom: 0.75em;
+  color: #1e3a8a;
+}
+
+.import-websites__info-list {
+  margin: 0;
+  padding-left: 1.25em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.import-websites__info-list li {
+  color: #1e40af;
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .import-websites__info {
+  background: rgba(59, 130, 246, 0.15);
+}
+
+[data-theme="dark"] .import-websites__info-content {
+  color: #93c5fd;
+}
+
+[data-theme="dark"] .import-websites__info-content strong {
+  color: #bfdbfe;
+}
+
+[data-theme="dark"] .import-websites__info-list li {
+  color: #93c5fd;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .import-websites {
+    padding: 1.5em;
+  }
+
+  .import-websites--compact {
+    padding: 1em;
+  }
+
+  .import-websites__title {
+    font-size: var(--font-size-h2-mobile);
+    line-height: var(--line-height-h2-mobile);
+  }
+
+  .import-websites__mode {
+    padding: 0.75em;
+  }
+
+  .import-websites__actions {
+    flex-direction: column;
+  }
+
+  .import-websites__btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .import-websites__radio-text {
+    font-size: 0.8125em;
+  }
+}
+
+/* Compact variant adjustments */
+.import-websites--compact .import-websites__content {
+  gap: 1em;
+}
+
+.import-websites--compact .import-websites__mode {
+  padding: 0.75em;
+}
+
+.import-websites--compact .import-websites__select-btn {
+  padding: 0.75em 1.5em;
+}
+
+.import-websites--compact .import-websites__validation {
+  padding: 1em;
+}
+
+.import-websites--compact .import-websites__btn {
+  padding: 0.75em 1.5em;
+}

@@ -186,3 +186,115 @@ pub async fn update_website_project_status(
         Err("Website not found".to_string())
     }
 }
+
+// controllers/website_controller.rs
+// Add this function to your existing website_controller.rs
+
+#[tauri::command]
+pub async fn import_websites(
+    json_data: String,
+    storage: State<'_, StorageService>,
+    merge: bool, // If true, merge with existing. If false, replace all
+) -> Result<Vec<Website>, String> {
+    // Parse the JSON data
+    let imported_websites: Vec<Website> =
+        serde_json::from_str(&json_data).map_err(|e| format!("Failed to parse JSON: {}", e))?;
+
+    // Validate the imported websites
+    if imported_websites.is_empty() {
+        return Err("No websites found in import file".to_string());
+    }
+
+    // Ensure all websites have proper defaults
+    let imported_websites: Vec<Website> = imported_websites
+        .into_iter()
+        .map(|mut website| {
+            if website.vitals.is_none() {
+                website.vitals = Some(WebVitals::default());
+            }
+            website
+        })
+        .collect();
+
+    if merge {
+        // Merge with existing websites
+        let mut existing_websites = storage.get_websites().map_err(|e| e.to_string())?;
+        let existing_ids: std::collections::HashSet<i64> =
+            existing_websites.iter().map(|w| w.id).collect();
+
+        // Find the highest existing ID
+        let max_id = existing_websites.iter().map(|w| w.id).max().unwrap_or(0);
+
+        // Add new websites with updated IDs if they conflict
+        let mut next_id = max_id + 1;
+        for mut website in imported_websites {
+            if existing_ids.contains(&website.id) {
+                // Update the website with a new ID
+                website.id = next_id;
+                next_id += 1;
+            }
+            existing_websites.push(website);
+        }
+
+        storage
+            .save_websites(&existing_websites)
+            .map_err(|e| e.to_string())?;
+        Ok(existing_websites)
+    } else {
+        // Replace all websites
+        storage
+            .save_websites(&imported_websites)
+            .map_err(|e| e.to_string())?;
+        Ok(imported_websites)
+    }
+}
+
+#[tauri::command]
+pub async fn validate_import_data(json_data: String) -> Result<ImportValidationResult, String> {
+    // Try to parse the JSON
+    let websites: Result<Vec<Website>, _> = serde_json::from_str(&json_data);
+
+    match websites {
+        Ok(websites) => {
+            let website_count = websites.len();
+            let has_duplicates = has_duplicate_urls(&websites);
+            let missing_urls = websites.iter().filter(|w| w.url.is_empty()).count();
+
+            Ok(ImportValidationResult {
+                valid: true,
+                website_count,
+                has_duplicates,
+                missing_urls,
+                error_message: None,
+            })
+        }
+        Err(e) => Ok(ImportValidationResult {
+            valid: false,
+            website_count: 0,
+            has_duplicates: false,
+            missing_urls: 0,
+            error_message: Some(format!("Invalid JSON format: {}", e)),
+        }),
+    }
+}
+
+// Helper struct for validation result
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct ImportValidationResult {
+    valid: bool,
+    website_count: usize,
+    has_duplicates: bool,
+    missing_urls: usize,
+    error_message: Option<String>,
+}
+
+// Helper function to check for duplicate URLs
+fn has_duplicate_urls(websites: &[Website]) -> bool {
+    let mut seen = std::collections::HashSet::new();
+    for website in websites {
+        if !seen.insert(website.url.clone()) {
+            return true;
+        }
+    }
+    false
+}

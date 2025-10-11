@@ -24,17 +24,17 @@ fn main() {
             controllers::website_controller::check_website_status,
             controllers::website_controller::get_web_vitals,
             controllers::website_controller::export_websites,
+            controllers::website_controller::import_websites,
+            controllers::website_controller::validate_import_data,
             controllers::website_controller::save_to_cloud,
             controllers::website_controller::scan_website,
             controllers::website_controller::detect_wordpress,
             controllers::website_controller::update_website_industry,
             controllers::website_controller::update_website_project_status,
-            
             // Screenshot Controllers
             controllers::screenshot_controller::take_screenshot,
             controllers::screenshot_controller::take_bulk_screenshots,
             controllers::screenshot_controller::cancel_bulk_screenshots,
-            
             // Cloud Controllers
             controllers::cloud_controller::start_google_drive_auth,
             controllers::cloud_controller::complete_google_drive_auth,
@@ -43,7 +43,6 @@ fn main() {
             controllers::cloud_controller::disconnect_google_drive,
             controllers::cloud_controller::backup_local,
             controllers::cloud_controller::open_backup_folder,
-            
             // Settings Controllers (NEW)
             controllers::settings_controller::save_settings,
             controllers::settings_controller::load_settings,

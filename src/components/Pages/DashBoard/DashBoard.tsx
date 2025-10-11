@@ -8,6 +8,7 @@ import { AppError } from "../../../hooks/useErrorHandler";
 import { ScreenshotProgress } from "../../../models/ScreenshotProgress";
 import { Cloud } from "lucide-react";
 import CloudBackup from "../../CloudBackUp/CloudBackup"; // Make sure this path is correct
+import ImportWebsites from "./ImportStatusPopup/ImportStatusPopup";
 
 function DashBoard() {
   const [websites, setWebsites] = useState<Website[]>([]);
@@ -36,6 +37,7 @@ function DashBoard() {
     exportTime: new Date(),
   });
   const [customStatuses, setCustomStatuses] = useState<{ value: ProjectStatus; label: string; color: string }[]>([]);
+  const [showImport, setShowImport] = useState(false);
 
   const navigate = useNavigate();
 
@@ -355,6 +357,14 @@ function DashBoard() {
     alert(`Successfully restored ${restoredWebsites.length} websites!`);
   };
 
+  const handleImportComplete = async (importedWebsites: Website[]) => {
+    const updatedWebsites = await TauriService.loadWebsites();
+    setWebsites(updatedWebsites);
+    alert(`Successfully imported ${importedWebsites.length} websites!`);
+
+  }
+
+
   // Main render function
   const renderContent = () => {
     if (selectedWebsite) {
@@ -439,8 +449,14 @@ function DashBoard() {
           )}
         </div>
 
-        <button className="scan-btn" onClick={handleExport}>Export Settings</button>
-      </>
+        <div className="import-export-actions">
+          <button className="scan-btn" onClick={handleExport}>
+            Export Settings
+          </button>
+          <button className="scan-btn" onClick={() => setShowImport(!showImport)}>
+            Import Settings
+          </button>
+        </div>      </>
     );
   };
 
@@ -605,6 +621,14 @@ function DashBoard() {
           exportTime={exportStatus.exportTime}
           totalWebsites={websites.length}
         />
+        {
+          showImport && (
+            <ImportWebsites
+              onImportComplete={handleImportComplete}
+              variant="compact"
+            />
+          )
+        }
       </div>
     </main>
   );

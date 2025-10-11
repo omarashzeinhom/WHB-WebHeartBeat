@@ -153,20 +153,3 @@ pub enum Industry {
     Government,
     Nonprofit,
 }
-
-impl Industry {
-    pub fn as_str(&self) -> &str {
-        match self {
-            Industry::General => "general",
-            Industry::Ecommerce => "ecommerce",
-            Industry::Finance => "finance",
-            Industry::Healthcare => "healthcare",
-            Industry::Education => "education",
-            Industry::Technology => "technology",
-            Industry::Media => "media",
-            Industry::Travel => "travel",
-            Industry::Government => "government",
-            Industry::Nonprofit => "nonprofit",
-        }
-    }
-}
