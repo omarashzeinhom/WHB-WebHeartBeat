@@ -7,8 +7,13 @@ import { ExportStatusPopup, IndustryFilter, ProjectStatusFilter, WebsiteCard, We
 import { AppError } from "../../../hooks/useErrorHandler";
 import { ScreenshotProgress } from "../../../models/ScreenshotProgress";
 import { Cloud } from "lucide-react";
-import CloudBackup from "../../CloudBackUp/CloudBackup"; // Make sure this path is correct
+import CloudBackup from "../../CloudBackUp/CloudBackup";
 import ImportWebsites from "./ImportStatusPopup/ImportStatusPopup";
+
+// Custom status storage interface
+interface CustomStatusStorage {
+  customStatuses: { value: ProjectStatus; label: string; color: string }[];
+}
 
 function DashBoard() {
   const [websites, setWebsites] = useState<Website[]>([]);
@@ -43,6 +48,7 @@ function DashBoard() {
 
   useEffect(() => {
     loadWebsites();
+    loadCustomStatuses(); // Load custom statuses on mount
     setupProgressListener();
   }, []);
 
@@ -53,6 +59,38 @@ function DashBoard() {
     }
   }, [websites]);
 
+  // Auto-save custom statuses when they change
+  useEffect(() => {
+    if (customStatuses.length > 0) {
+      saveCustomStatuses();
+    }
+  }, [customStatuses]);
+
+  // Load custom statuses from localStorage
+  const loadCustomStatuses = () => {
+    try {
+      const stored = localStorage.getItem('customProjectStatuses');
+      if (stored) {
+        const parsed: CustomStatusStorage = JSON.parse(stored);
+        setCustomStatuses(parsed.customStatuses || []);
+      }
+    } catch (error) {
+      console.error('Failed to load custom statuses:', error);
+    }
+  };
+
+  // Save custom statuses to localStorage
+  const saveCustomStatuses = () => {
+    try {
+      const storage: CustomStatusStorage = {
+        customStatuses: customStatuses
+      };
+      localStorage.setItem('customProjectStatuses', JSON.stringify(storage));
+    } catch (error) {
+      console.error('Failed to save custom statuses:', error);
+    }
+  };
+
   // Error handling utility
   const addError = (message: string, type: 'error' | 'warning' | 'info' = 'error') => {
     const error: AppError = {
@@ -62,7 +100,6 @@ function DashBoard() {
     };
     setErrors(prev => [...prev, error]);
 
-    // Auto-remove errors after 5 seconds
     setTimeout(() => {
       setErrors(prev => prev.filter(e => e !== error));
     }, 5000);
@@ -140,34 +177,37 @@ function DashBoard() {
     setLoading(false);
   };
 
+  // FIXED: Single screenshot function with proper state management
   const takeScreenshot = async (id: number) => {
-    setScreenshotLoading(true);
+    const website = websites.find(w => w.id === id);
+
+    if (!website) {
+      return;
+    }
+
+    // Set processing state immediately
     setWebsites(websites.map(w =>
       w.id === id ? { ...w, isProcessing: true } : w
     ));
 
-    const website = websites.find(w => w.id === id);
-
-    if (!website) {
-      setScreenshotLoading(false);
-      return;
-    }
-
     try {
       const updatedWebsite = await TauriService.takeScreenshot(website);
-      const updatedWebsites = websites.map(w =>
+      
+      // Update with screenshot and clear processing state
+      setWebsites(websites.map(w =>
         w.id === id ? { ...updatedWebsite, isProcessing: false } : w
-      );
-      setWebsites(updatedWebsites);
+      ));
+      
+      addError(`Screenshot taken for ${website.name}`, 'info');
     } catch (error) {
       console.error("Error taking screenshot:", error);
       addError(`Failed to take screenshot: ${website.name}`);
+      
+      // Clear processing state on error
       setWebsites(websites.map(w =>
         w.id === id ? { ...w, isProcessing: false } : w
       ));
     }
-
-    setScreenshotLoading(false);
   };
 
   const handleCloudSync = async () => {
@@ -276,14 +316,22 @@ function DashBoard() {
     return filtered;
   };
 
+  // FIXED: Export now includes custom statuses
   const handleExport = async () => {
     try {
-      const data = JSON.stringify(websites, null, 2);
+      const exportData = {
+        websites: websites,
+        customStatuses: customStatuses,
+        exportDate: new Date().toISOString(),
+        version: '1.0'
+      };
+
+      const data = JSON.stringify(exportData, null, 2);
       const blob = new Blob([data], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'website_settings.json';
+      a.download = `website_settings_${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -338,7 +386,6 @@ function DashBoard() {
     );
 
     try {
-      // Save the updated website to backend
       const updatedWebsites = websites.map(website =>
         website.id === id ? { ...website, ...updates } : website
       );
@@ -349,21 +396,37 @@ function DashBoard() {
     }
   };
 
-  // Add this function to your Dashboard component
   const handleRestoreBackup = (restoredWebsites: Website[]) => {
     setWebsites(restoredWebsites);
-    // Also save the restored websites
     saveWebsites(restoredWebsites);
     alert(`Successfully restored ${restoredWebsites.length} websites!`);
   };
 
-  const handleImportComplete = async (importedWebsites: Website[]) => {
-    const updatedWebsites = await TauriService.loadWebsites();
-    setWebsites(updatedWebsites);
-    alert(`Successfully imported ${importedWebsites.length} websites!`);
-
-  }
-
+  // FIXED: Import now handles custom statuses
+  const handleImportComplete = async (importedData: any) => {
+    try {
+      // Check if importedData contains websites and customStatuses
+      if (importedData.websites && Array.isArray(importedData.websites)) {
+        setWebsites(importedData.websites);
+        await TauriService.saveWebsites(importedData.websites);
+        
+        // Import custom statuses if they exist
+        if (importedData.customStatuses && Array.isArray(importedData.customStatuses)) {
+          setCustomStatuses(importedData.customStatuses);
+        }
+        
+        alert(`Successfully imported ${importedData.websites.length} websites!`);
+      } else {
+        // Fallback for old format (just array of websites)
+        const updatedWebsites = await TauriService.loadWebsites();
+        setWebsites(updatedWebsites);
+        alert(`Successfully imported ${updatedWebsites.length} websites!`);
+      }
+    } catch (error) {
+      console.error('Import failed:', error);
+      addError('Import failed');
+    }
+  };
 
   // Main render function
   const renderContent = () => {
@@ -414,8 +477,6 @@ function DashBoard() {
           />
         )}
 
-        {/* REMOVED DUPLICATE LINE: <Cloud size={16} /> Cloud Backup */}
-
         <div className="cloud-sync-options">
           <h3>Cloud Sync</h3>
 
@@ -456,7 +517,8 @@ function DashBoard() {
           <button className="scan-btn" onClick={() => setShowImport(!showImport)}>
             Import Settings
           </button>
-        </div>      </>
+        </div>
+      </>
     );
   };
 
@@ -497,20 +559,17 @@ function DashBoard() {
         </div>
       </div>
 
-      {/* Industry Filter */}
       <IndustryFilter
         selectedIndustry={selectedIndustry}
         onIndustryChange={setSelectedIndustry}
       />
 
-      {/* Project Status Filter */}
       <ProjectStatusFilter
         selectedStatus={selectedProjectStatus}
         onStatusChange={setSelectedProjectStatus}
         onAddCustomStatus={handleAddCustomStatus}
       />
 
-      {/* Progress Indicator */}
       {screenshotProgress && (
         <div className="progress-container">
           <div className="progress-bar">
@@ -584,7 +643,6 @@ function DashBoard() {
   return (
     <main>
       <div className="main-container">
-        {/* Error Display */}
         {errors.length > 0 && (
           <div className="error-container">
             {errors.map((error, index) => (
@@ -621,14 +679,12 @@ function DashBoard() {
           exportTime={exportStatus.exportTime}
           totalWebsites={websites.length}
         />
-        {
-          showImport && (
-            <ImportWebsites
-              onImportComplete={handleImportComplete}
-              variant="compact"
-            />
-          )
-        }
+        {showImport && (
+          <ImportWebsites
+            onImportComplete={handleImportComplete}
+            variant="compact"
+          />
+        )}
       </div>
     </main>
   );

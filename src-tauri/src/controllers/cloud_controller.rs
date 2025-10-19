@@ -3,7 +3,6 @@ use once_cell::sync::Lazy;
 use rand::Rng;
 use reqwest;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::fs;
 use std::sync::Mutex;
 use tauri::command;
@@ -295,65 +294,4 @@ pub async fn open_backup_folder() -> Result<(), String> {
     }
 
     Ok(())
-}
-
-#[command]
-pub async fn list_cloud_backups() -> Result<Vec<HashMap<String, String>>, String> {
-    let backup_dir = "backups";
-    let mut backups = Vec::new();
-
-    if let Ok(entries) = fs::read_dir(backup_dir) {
-        for entry in entries.flatten() {
-            if let Ok(metadata) = entry.metadata() {
-                if metadata.is_file() {
-                    let path = entry.path();
-                    if let Some(extension) = path.extension() {
-                        if extension == "json" {
-                            let mut backup_info = HashMap::new();
-                            backup_info.insert(
-                                "filename".to_string(),
-                                path.file_name().unwrap().to_string_lossy().to_string(),
-                            );
-                            backup_info
-                                .insert("path".to_string(), path.to_string_lossy().to_string());
-                            backup_info
-                                .insert("size".to_string(), format!("{} bytes", metadata.len()));
-                            backup_info.insert(
-                                "modified".to_string(),
-                                format!(
-                                    "{:?}",
-                                    metadata
-                                        .modified()
-                                        .unwrap_or(std::time::SystemTime::UNIX_EPOCH)
-                                ),
-                            );
-                            backups.push(backup_info);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Sort by filename (which includes timestamp)
-    backups.sort_by(|a, b| b["filename"].cmp(&a["filename"]));
-
-    Ok(backups)
-}
-
-#[command]
-pub async fn restore_from_cloud(backup_path: String) -> Result<Vec<Website>, String> {
-    let data = fs::read_to_string(&backup_path)
-        .map_err(|e| format!("Failed to read backup file: {}", e))?;
-
-    let websites: Vec<Website> =
-        serde_json::from_str(&data).map_err(|e| format!("Failed to parse backup: {}", e))?;
-
-    println!(
-        "Restored {} websites from backup: {}",
-        websites.len(),
-        backup_path
-    );
-
-    Ok(websites)
 }

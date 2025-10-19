@@ -60,18 +60,13 @@ pub async fn get_web_vitals(_url: String) -> Result<WebVitals, String> {
     Ok(WebVitals::default())
 }
 
-// Then in the scan_website function, update both success and error cases:
 #[tauri::command]
 pub async fn scan_website(website: Website, api_key: String) -> Result<WpscanResult, String> {
-    // Validate API key and URL...
-
     let wpscan_service = WpscanService::new(api_key);
 
     match wpscan_service.scan_website(&website.url).await {
         Ok(mut result) => {
-            // Ensure the result has the URL and wordpress_version
             result.url = website.url.clone();
-            // If wordpress_version is not set by the service, set a default
             if result.wordpress_version.is_none() {
                 result.wordpress_version = Some("Unknown".to_string());
             }
@@ -80,8 +75,6 @@ pub async fn scan_website(website: Website, api_key: String) -> Result<WpscanRes
         }
         Err(e) => {
             eprintln!("WPScan error for {}: {}", website.url, e);
-
-            // Return a basic result with the required fields
             Ok(WpscanResult {
                 url: website.url,
                 wordpress_version: Some("Unknown".to_string()),
@@ -95,6 +88,7 @@ pub async fn scan_website(website: Website, api_key: String) -> Result<WpscanRes
         }
     }
 }
+
 #[tauri::command]
 pub async fn detect_wordpress(url: String) -> Result<bool, String> {
     if url.trim().is_empty() {
@@ -149,16 +143,18 @@ pub async fn update_website_industry(
     let mut websites = storage.get_websites().map_err(|e| e.to_string())?;
 
     if let Some(website) = websites.iter_mut().find(|w| w.id == id) {
-        website.industry = industry;
+        website.industry = industry.clone();
         storage
             .save_websites(&websites)
             .map_err(|e| e.to_string())?;
+        println!("Updated industry for website {} to {}", id, industry);
         Ok(())
     } else {
         Err("Website not found".to_string())
     }
 }
 
+// FIXED: Now actually updates the project_status field
 #[tauri::command]
 pub async fn update_website_project_status(
     id: i64,
@@ -168,33 +164,29 @@ pub async fn update_website_project_status(
     let mut websites = storage.get_websites().map_err(|e| e.to_string())?;
 
     if let Some(website) = websites.iter_mut().find(|w| w.id == id) {
-        // Note: You'll need to add project_status field to your Website struct
-        // For now, we'll just print it since the field might not exist yet
-        println!(
-            "Updating project status for website {}: {}",
-            id, project_status
-        );
-
-        // Uncomment this line once you add project_status to your Website struct:
-        // website.project_status = project_status;
-
+        // Actually update the project_status field
+        website.project_status = Some(project_status.clone());
+        
+        // Save the updated websites
         storage
             .save_websites(&websites)
             .map_err(|e| e.to_string())?;
+        
+        println!(
+            "Successfully updated project status for website {} to: {}",
+            id, project_status
+        );
         Ok(())
     } else {
-        Err("Website not found".to_string())
+        Err(format!("Website with id {} not found", id))
     }
 }
-
-// controllers/website_controller.rs
-// Add this function to your existing website_controller.rs
 
 #[tauri::command]
 pub async fn import_websites(
     json_data: String,
     storage: State<'_, StorageService>,
-    merge: bool, // If true, merge with existing. If false, replace all
+    merge: bool,
 ) -> Result<Vec<Website>, String> {
     // Parse the JSON data
     let imported_websites: Vec<Website> =
@@ -211,6 +203,10 @@ pub async fn import_websites(
         .map(|mut website| {
             if website.vitals.is_none() {
                 website.vitals = Some(WebVitals::default());
+            }
+            // Ensure project_status has a default value if None
+            if website.project_status.is_none() {
+                website.project_status = Some("wip".to_string());
             }
             website
         })

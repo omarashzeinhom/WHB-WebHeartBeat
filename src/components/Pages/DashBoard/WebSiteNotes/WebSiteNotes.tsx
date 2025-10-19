@@ -1,139 +1,66 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Globe, Lock, FileText, Shield, AlertTriangle, Save, Plus, Trash2 } from 'lucide-react';
 import './WebsiteNotes.css';
 
+// Define the props interface directly in this file
 interface WebsiteNotesProps {
-  notes: any;
+  notes?: any; // Add the notes prop
   onNotesChange: (notes: any) => void;
 }
 
 const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => {
   const [activeTab, setActiveTab] = useState<'dns' | 'access' | 'general' | 'security' | 'report'>('dns');
-  const [hasChanges, setHasChanges] = useState(false);
-  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [currentNotes, setCurrentNotes] = useState(() => {
-    const defaultNotes = {
-      dnsHistory: [],
-      projectAccess: {
-        credentials: [],
-        accessNotes: '',
-        warningAcknowledged: false
-      },
-      generalNotes: '',
-      security: {
-        vulnerabilities: [],
-        openPorts: [],
-        exposedInfo: '',
-        securityScanResults: ''
-      },
-      report: {
-        summary: '',
-        performance: '',
-        security: '',
-        recommendations: '',
-        generatedDate: new Date().toISOString()
-      },
-      lastUpdated: new Date().toISOString()
-    };
-    return notes || defaultNotes;
+  const getDefaultNotes = () => ({
+    dnsHistory: [],
+    projectAccess: {
+      credentials: [],
+      accessNotes: '',
+      warningAcknowledged: false
+    },
+    generalNotes: '',
+    security: {
+      vulnerabilities: [],
+      openPorts: [],
+      exposedInfo: '',
+      securityScanResults: ''
+    },
+    report: {
+      summary: '',
+      performance: '',
+      security: '',
+      recommendations: '',
+      generatedDate: new Date().toISOString()
+    },
+    lastUpdated: new Date().toISOString()
   });
 
-  // Ref to hold current notes value for auto-save
-  const currentNotesRef = useRef(currentNotes);
-  const onNotesChangeRef = useRef(onNotesChange);
+  // Use a single state object to prevent multiple re-renders
+  const [notesState, setNotesState] = useState({
+    currentNotes: notes || getDefaultNotes(),
+    hasChanges: false
+  });
 
-  // Keep refs in sync
-  useEffect(() => {
-    currentNotesRef.current = currentNotes;
-  }, [currentNotes]);
-
-  useEffect(() => {
-    onNotesChangeRef.current = onNotesChange;
-  }, [onNotesChange]);
-
-  const handleSave = () => {
+  // Memoized save function
+  const handleSave = useCallback(() => {
     console.log('💾 Saving notes...');
-    setHasChanges(false);
-
     const updatedNotes = {
-      ...currentNotesRef.current,
+      ...notesState.currentNotes,
       lastUpdated: new Date().toISOString()
     };
-
-    onNotesChangeRef.current(updatedNotes);
+    onNotesChange(updatedNotes);
+    setNotesState(prev => ({ ...prev, hasChanges: false }));
     console.log('✅ Notes saved');
-  };
+  }, [notesState.currentNotes, onNotesChange]);
 
-  const handleFieldChange = (section: string, field: string, value: any) => {
-    const updatedNotes = { ...currentNotes };
-
-    if (section === 'generalNotes') {
-      updatedNotes.generalNotes = value;
-    } else if (section.includes('.')) {
-      // Handle nested fields like security.exposedInfo
-      const [parent, child] = section.split('.');
-      if (updatedNotes[parent]) {
-        updatedNotes[parent] = {
-          ...updatedNotes[parent],
-          [child]: value
-        };
-      }
-    } else {
-      updatedNotes[section] = {
-        ...updatedNotes[section],
-        [field]: value
-      };
-    }
-
-    setCurrentNotes(updatedNotes);
-    setHasChanges(true);
-  };
-
-  const handleArrayChange = (section: string, items: any[]) => {
-    const updatedNotes = {
-      ...currentNotes,
-      [section]: items
-    };
-    setCurrentNotes(updatedNotes);
-    setHasChanges(true);
-  };
-
-  const handleNestedArrayChange = (section: string, subsection: string, items: any[]) => {
-    const updatedNotes = {
-      ...currentNotes,
-      [section]: {
-        ...currentNotes[section],
-        [subsection]: items
-      }
-    };
-    setCurrentNotes(updatedNotes);
-    setHasChanges(true);
-  };
-
-  // Save when switching tabs if there are changes
-  const handleTabChange = (tab: 'dns' | 'access' | 'general' | 'security' | 'report') => {
-    if (hasChanges) {
-      const confirmSave = window.confirm('You have unsaved changes. Do you want to save them before switching tabs?');
-      if (confirmSave) {
-        handleSave();
-      } else {
-        setHasChanges(false);
-      }
-    }
-    setActiveTab(tab);
-  };
-
-  // Auto-save after 2 seconds of inactivity - ONLY depends on hasChanges
+  // Auto-save effect with proper dependencies
   useEffect(() => {
-    // Clear existing timeout
     if (autoSaveTimeoutRef.current) {
       clearTimeout(autoSaveTimeoutRef.current);
-      autoSaveTimeoutRef.current = null;
     }
 
-    // Only set new timeout if there are changes
-    if (hasChanges) {
+    if (notesState.hasChanges) {
       console.log('⏱️ Setting auto-save timeout (2 seconds)');
       autoSaveTimeoutRef.current = setTimeout(() => {
         console.log('💾 Auto-save triggered');
@@ -141,43 +68,110 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
       }, 2000);
     }
 
-    // Cleanup on unmount
     return () => {
       if (autoSaveTimeoutRef.current) {
         clearTimeout(autoSaveTimeoutRef.current);
-        autoSaveTimeoutRef.current = null;
       }
     };
-  }, [hasChanges]); // ONLY hasChanges - this is the key!
+  }, [notesState.hasChanges, handleSave]);
+
+  const handleFieldChange = useCallback((section: string, field: string, value: any) => {
+    setNotesState(prev => {
+      const updatedNotes = { ...prev.currentNotes };
+
+      if (section === 'generalNotes') {
+        updatedNotes.generalNotes = value;
+      } else if (section.includes('.')) {
+        const [parent, child] = section.split('.');
+        if (updatedNotes[parent]) {
+          updatedNotes[parent] = {
+            ...updatedNotes[parent],
+            [child]: value
+          };
+        }
+      } else {
+        updatedNotes[section] = {
+          ...updatedNotes[section],
+          [field]: value
+        };
+      }
+
+      return {
+        currentNotes: updatedNotes,
+        hasChanges: true
+      };
+    });
+  }, []);
+
+  const handleArrayChange = useCallback((section: string, items: any[]) => {
+    setNotesState(prev => ({
+      currentNotes: {
+        ...prev.currentNotes,
+        [section]: items
+      },
+      hasChanges: true
+    }));
+  }, []);
+
+  const handleNestedArrayChange = useCallback((section: string, subsection: string, items: any[]) => {
+    setNotesState(prev => ({
+      currentNotes: {
+        ...prev.currentNotes,
+        [section]: {
+          ...prev.currentNotes[section],
+          [subsection]: items
+        }
+      },
+      hasChanges: true
+    }));
+  }, []);
+
+  const handleTabChange = (tab: 'dns' | 'access' | 'general' | 'security' | 'report') => {
+    if (notesState.hasChanges) {
+      const confirmSave = window.confirm('You have unsaved changes. Do you want to save them before switching tabs?');
+      if (confirmSave) {
+        handleSave();
+      } else {
+        setNotesState(prev => ({ ...prev, hasChanges: false }));
+      }
+    }
+    setActiveTab(tab);
+  };
 
   // DNS History Tab
   const DNSHistoryTab = () => (
     <div className="notes-tab-content">
       <div className="tab-header">
         <h3>DNS Records History</h3>
-        <button className="add-btn" onClick={() => handleArrayChange('dnsHistory', [
-          ...(currentNotes.dnsHistory || []),
-          {
-            type: 'A',
-            value: '',
-            ttl: 300,
-            lastChecked: new Date().toISOString()
-          }
-        ])}>
+        <button
+          className="add-btn"
+          onClick={() => {
+            const timestamp = new Date().toISOString();
+            handleArrayChange('dnsHistory', [
+              ...(notesState.currentNotes.dnsHistory || []),
+              {
+                type: 'A',
+                value: '',
+                ttl: 300,
+                lastChecked: timestamp
+              }
+            ]);
+          }}
+        >
           <Plus size={16} /> Add Record
         </button>
       </div>
 
       <div className="dns-records">
-        {(!currentNotes.dnsHistory || currentNotes.dnsHistory.length === 0) ? (
+        {(!notesState.currentNotes.dnsHistory || notesState.currentNotes.dnsHistory.length === 0) ? (
           <p className="empty-message">No DNS records added yet. Click "Add Record" to start tracking DNS changes.</p>
         ) : (
-          currentNotes.dnsHistory.map((record: any, index: number) => (
+          notesState.currentNotes.dnsHistory.map((record: any, index: number) => (
             <div key={index} className="dns-record">
               <select
                 value={record.type || 'A'}
                 onChange={(e) => {
-                  const updated = [...currentNotes.dnsHistory];
+                  const updated = [...notesState.currentNotes.dnsHistory];
                   updated[index] = { ...updated[index], type: e.target.value };
                   handleArrayChange('dnsHistory', updated);
                 }}
@@ -194,11 +188,12 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
                 placeholder="Record value (e.g., IP address, domain)"
                 value={record.value || ''}
                 onChange={(e) => {
-                  const updated = [...currentNotes.dnsHistory];
+                  const timestamp = new Date().toISOString();
+                  const updated = [...notesState.currentNotes.dnsHistory];
                   updated[index] = {
                     ...updated[index],
                     value: e.target.value,
-                    lastChecked: new Date().toISOString()
+                    lastChecked: timestamp
                   };
                   handleArrayChange('dnsHistory', updated);
                 }}
@@ -208,7 +203,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
                 placeholder="TTL (seconds)"
                 value={record.ttl || 300}
                 onChange={(e) => {
-                  const updated = [...currentNotes.dnsHistory];
+                  const updated = [...notesState.currentNotes.dnsHistory];
                   updated[index] = { ...updated[index], ttl: parseInt(e.target.value) || 300 };
                   handleArrayChange('dnsHistory', updated);
                 }}
@@ -219,7 +214,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
               <button
                 className="remove-btn"
                 onClick={() => handleArrayChange('dnsHistory',
-                  currentNotes.dnsHistory.filter((_: any, i: number) => i !== index)
+                  notesState.currentNotes.dnsHistory.filter((_: any, i: number) => i !== index)
                 )}
               >
                 <Trash2 size={14} />
@@ -246,7 +241,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
         <button
           className="add-btn"
           onClick={() => handleNestedArrayChange('projectAccess', 'credentials', [
-            ...(currentNotes.projectAccess?.credentials || []),
+            ...(notesState.currentNotes.projectAccess?.credentials || []),
             { service: '', username: '', url: '', notes: '' }
           ])}
         >
@@ -255,14 +250,14 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
       </div>
 
       <div className="credentials-list">
-        {(currentNotes.projectAccess?.credentials || []).map((cred: any, index: number) => (
+        {(notesState.currentNotes.projectAccess?.credentials || []).map((cred: any, index: number) => (
           <div key={index} className="credential-item">
             <input
               type="text"
               placeholder="Service (e.g., WordPress Admin, cPanel)"
               value={cred.service || ''}
               onChange={(e) => {
-                const updated = [...(currentNotes.projectAccess?.credentials || [])];
+                const updated = [...(notesState.currentNotes.projectAccess?.credentials || [])];
                 updated[index] = { ...updated[index], service: e.target.value };
                 handleNestedArrayChange('projectAccess', 'credentials', updated);
               }}
@@ -272,7 +267,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
               placeholder="Username/Email"
               value={cred.username || ''}
               onChange={(e) => {
-                const updated = [...(currentNotes.projectAccess?.credentials || [])];
+                const updated = [...(notesState.currentNotes.projectAccess?.credentials || [])];
                 updated[index] = { ...updated[index], username: e.target.value };
                 handleNestedArrayChange('projectAccess', 'credentials', updated);
               }}
@@ -282,7 +277,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
               placeholder="Login URL"
               value={cred.url || ''}
               onChange={(e) => {
-                const updated = [...(currentNotes.projectAccess?.credentials || [])];
+                const updated = [...(notesState.currentNotes.projectAccess?.credentials || [])];
                 updated[index] = { ...updated[index], url: e.target.value };
                 handleNestedArrayChange('projectAccess', 'credentials', updated);
               }}
@@ -291,7 +286,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
               placeholder="Notes (e.g., password hints, 2FA info)"
               value={cred.notes || ''}
               onChange={(e) => {
-                const updated = [...(currentNotes.projectAccess?.credentials || [])];
+                const updated = [...(notesState.currentNotes.projectAccess?.credentials || [])];
                 updated[index] = { ...updated[index], notes: e.target.value };
                 handleNestedArrayChange('projectAccess', 'credentials', updated);
               }}
@@ -299,7 +294,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
             <button
               className="remove-btn"
               onClick={() => handleNestedArrayChange('projectAccess', 'credentials',
-                (currentNotes.projectAccess?.credentials || []).filter((_: any, i: number) => i !== index)
+                (notesState.currentNotes.projectAccess?.credentials || []).filter((_: any, i: number) => i !== index)
               )}
             >
               <Trash2 size={14} />
@@ -312,7 +307,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
         <h4>Access Notes</h4>
         <textarea
           placeholder="Additional access information, client instructions, etc."
-          value={currentNotes.projectAccess?.accessNotes || ''}
+          value={notesState.currentNotes.projectAccess?.accessNotes || ''}
           onChange={(e) => handleFieldChange('projectAccess', 'accessNotes', e.target.value)}
           rows={4}
         />
@@ -326,7 +321,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
       <textarea
         className="general-notes-textarea"
         placeholder="Enter general notes about this website: client requirements, project scope, deadlines, etc."
-        value={currentNotes.generalNotes || ''}
+        value={notesState.currentNotes.generalNotes || ''}
         onChange={(e) => handleFieldChange('generalNotes', '', e.target.value)}
         rows={15}
       />
@@ -339,64 +334,69 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
         <h3>Security Vulnerabilities</h3>
         <button
           className="add-btn"
-          onClick={() => handleNestedArrayChange('security', 'vulnerabilities', [
-            ...(currentNotes.security?.vulnerabilities || []),
-            {
-              name: '',
-              severity: 'medium',
-              description: '',
-              status: 'open',
-              discovered: new Date().toISOString()
-            }
-          ])}
+          onClick={() => {
+            const timestamp = new Date().toISOString();
+            handleNestedArrayChange('security', 'vulnerabilities', [
+              ...(notesState.currentNotes.security?.vulnerabilities || []),
+              {
+                name: '',
+                severity: 'medium',
+                description: '',
+                status: 'open',
+                discovered: timestamp
+              }
+            ]);
+          }}
         >
           <Plus size={16} /> Add Vulnerability
         </button>
       </div>
 
       <div className="vulnerabilities-list">
-        {(currentNotes.security?.vulnerabilities || []).map((vuln: any, index: number) => (
+        {(notesState.currentNotes.security?.vulnerabilities || []).map((vuln: any, index: number) => (
           <div key={index} className={`vulnerability-item severity-${vuln.severity}`}>
-            <input
-              type="text"
-              placeholder="Vulnerability name"
-              value={vuln.name || ''}
-              onChange={(e) => {
-                const updated = [...(currentNotes.security?.vulnerabilities || [])];
-                updated[index] = { ...updated[index], name: e.target.value };
-                handleNestedArrayChange('security', 'vulnerabilities', updated);
-              }}
-            />
-            <select
-              value={vuln.severity || 'medium'}
-              onChange={(e) => {
-                const updated = [...(currentNotes.security?.vulnerabilities || [])];
-                updated[index] = { ...updated[index], severity: e.target.value };
-                handleNestedArrayChange('security', 'vulnerabilities', updated);
-              }}
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
-            </select>
-            <select
-              value={vuln.status || 'open'}
-              onChange={(e) => {
-                const updated = [...(currentNotes.security?.vulnerabilities || [])];
-                updated[index] = { ...updated[index], status: e.target.value };
-                handleNestedArrayChange('security', 'vulnerabilities', updated);
-              }}
-            >
-              <option value="open">Open</option>
-              <option value="in-progress">In Progress</option>
-              <option value="fixed">Fixed</option>
-            </select>
+            <div className="vulnerability-inputs">
+              <input
+                type="text"
+                placeholder="Vulnerability name"
+                value={vuln.name || ''}
+                onChange={(e) => {
+                  const updated = [...(notesState.currentNotes.security?.vulnerabilities || [])];
+                  updated[index] = { ...updated[index], name: e.target.value };
+                  handleNestedArrayChange('security', 'vulnerabilities', updated);
+                }}
+              />
+              <select
+                value={vuln.severity || 'medium'}
+                onChange={(e) => {
+                  const updated = [...(notesState.currentNotes.security?.vulnerabilities || [])];
+                  updated[index] = { ...updated[index], severity: e.target.value };
+                  handleNestedArrayChange('security', 'vulnerabilities', updated);
+                }}
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+              <select
+                value={vuln.status || 'open'}
+                onChange={(e) => {
+                  const updated = [...(notesState.currentNotes.security?.vulnerabilities || [])];
+                  updated[index] = { ...updated[index], status: e.target.value };
+                  handleNestedArrayChange('security', 'vulnerabilities', updated);
+                }}
+              >
+                <option value="open">Open</option>
+                <option value="in-progress">In Progress</option>
+                <option value="fixed">Fixed</option>
+              </select>
+            </div>
             <textarea
               placeholder="Description and remediation steps"
               value={vuln.description || ''}
               onChange={(e) => {
-                const updated = [...(currentNotes.security?.vulnerabilities || [])];
+                const updated = [...(notesState.currentNotes.security?.vulnerabilities || [])];
                 updated[index] = { ...updated[index], description: e.target.value };
                 handleNestedArrayChange('security', 'vulnerabilities', updated);
               }}
@@ -404,7 +404,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
             <button
               className="remove-btn"
               onClick={() => handleNestedArrayChange('security', 'vulnerabilities',
-                (currentNotes.security?.vulnerabilities || []).filter((_: any, i: number) => i !== index)
+                (notesState.currentNotes.security?.vulnerabilities || []).filter((_: any, i: number) => i !== index)
               )}
             >
               <Trash2 size={14} />
@@ -417,7 +417,7 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
         <h4>Security Scan Results</h4>
         <textarea
           placeholder="Enter security scan results, exposed information, and security recommendations..."
-          value={currentNotes.security?.exposedInfo || ''}
+          value={notesState.currentNotes.security?.exposedInfo || ''}
           onChange={(e) => handleFieldChange('security.exposedInfo', '', e.target.value)}
           rows={6}
         />
@@ -425,81 +425,83 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
     </div>
   );
 
-  const ReportTab = () => (
-    <div className="notes-tab-content">
-      <div className="tab-header">
-        <h3>Website Status Report</h3>
-        <div className="report-actions">
-          <button className="export-btn" onClick={() => exportReport('pdf')}>
-            Export as PDF
-          </button>
-          <button className="export-btn" onClick={() => exportReport('json')}>
-            Export as JSON
-          </button>
+  const ReportTab = () => {
+    const exportReport = (format: 'pdf' | 'json') => {
+      if (format === 'json') {
+        const timestamp = new Date().toISOString();
+        const reportData = {
+          ...notesState.currentNotes.report,
+          exportDate: timestamp,
+          format: 'json'
+        };
+
+        const dataStr = JSON.stringify(reportData, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+        const exportFileDefaultName = `website-report-${timestamp.split('T')[0]}.json`;
+
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+      } else {
+        alert('PDF export feature will be implemented. For now, use the JSON export.');
+      }
+    };
+
+    return (
+      <div className="notes-tab-content">
+        <div className="tab-header">
+          <h3>Website Status Report</h3>
+          <div className="report-actions">
+            <button className="export-btn" onClick={() => exportReport('pdf')}>
+              Export as PDF
+            </button>
+            <button className="export-btn" onClick={() => exportReport('json')}>
+              Export as JSON
+            </button>
+          </div>
+        </div>
+
+        <div className="report-fields">
+          <div className="report-field">
+            <label>Executive Summary</label>
+            <textarea
+              value={notesState.currentNotes.report?.summary || ''}
+              onChange={(e) => handleFieldChange('report', 'summary', e.target.value)}
+              placeholder="Brief overview of website status..."
+              rows={3}
+            />
+          </div>
+          <div className="report-field">
+            <label>Performance Analysis</label>
+            <textarea
+              value={notesState.currentNotes.report?.performance || ''}
+              onChange={(e) => handleFieldChange('report', 'performance', e.target.value)}
+              placeholder="Performance metrics and analysis..."
+              rows={3}
+            />
+          </div>
+          <div className="report-field">
+            <label>Security Assessment</label>
+            <textarea
+              value={notesState.currentNotes.report?.security || ''}
+              onChange={(e) => handleFieldChange('report', 'security', e.target.value)}
+              placeholder="Security findings and recommendations..."
+              rows={3}
+            />
+          </div>
+          <div className="report-field">
+            <label>Recommendations</label>
+            <textarea
+              value={notesState.currentNotes.report?.recommendations || ''}
+              onChange={(e) => handleFieldChange('report', 'recommendations', e.target.value)}
+              placeholder="Action items and recommendations..."
+              rows={3}
+            />
+          </div>
         </div>
       </div>
-
-      <div className="report-fields">
-        <div className="report-field">
-          <label>Executive Summary</label>
-          <textarea
-            value={currentNotes.report?.summary || ''}
-            onChange={(e) => handleFieldChange('report', 'summary', e.target.value)}
-            placeholder="Brief overview of website status..."
-            rows={3}
-          />
-        </div>
-        <div className="report-field">
-          <label>Performance Analysis</label>
-          <textarea
-            value={currentNotes.report?.performance || ''}
-            onChange={(e) => handleFieldChange('report', 'performance', e.target.value)}
-            placeholder="Performance metrics and analysis..."
-            rows={3}
-          />
-        </div>
-        <div className="report-field">
-          <label>Security Assessment</label>
-          <textarea
-            value={currentNotes.report?.security || ''}
-            onChange={(e) => handleFieldChange('report', 'security', e.target.value)}
-            placeholder="Security findings and recommendations..."
-            rows={3}
-          />
-        </div>
-        <div className="report-field">
-          <label>Recommendations</label>
-          <textarea
-            value={currentNotes.report?.recommendations || ''}
-            onChange={(e) => handleFieldChange('report', 'recommendations', e.target.value)}
-            placeholder="Action items and recommendations..."
-            rows={3}
-          />
-        </div>
-      </div>
-    </div>
-  );
-
-  const exportReport = (format: 'pdf' | 'json') => {
-    if (format === 'json') {
-      const reportData = {
-        ...currentNotes.report,
-        exportDate: new Date().toISOString(),
-        format: 'json'
-      };
-
-      const dataStr = JSON.stringify(reportData, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-
-      const exportFileDefaultName = `website-report-${new Date().toISOString().split('T')[0]}.json`;
-
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportFileDefaultName);
-      linkElement.click();
-    } else {
-      alert('PDF export feature will be implemented. For now, use the JSON export.');
-    }
+    );
   };
 
   return (
@@ -507,13 +509,13 @@ const WebsiteNotes: React.FC<WebsiteNotesProps> = ({ notes, onNotesChange }) => 
       <div className="notes-header">
         <h3>Website Notes & Documentation</h3>
         <div className="header-actions">
-          {hasChanges && (
+          {notesState.hasChanges && (
             <button className="save-btn" onClick={handleSave}>
               <Save size={16} /> Save Changes
             </button>
           )}
           <span className="last-saved">
-            Last updated: {new Date(currentNotes.lastUpdated).toLocaleString()}
+            Last updated: {new Date(notesState.currentNotes.lastUpdated).toLocaleString()}
           </span>
         </div>
       </div>

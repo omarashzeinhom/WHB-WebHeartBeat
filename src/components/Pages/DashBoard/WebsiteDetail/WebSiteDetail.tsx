@@ -26,8 +26,8 @@ import {
 } from "lucide-react"
 import type { Website } from "../../../../models/website"
 import "./WebsiteDetail.css"
-import WebsiteNotes from "../WebSiteNotes/WebSiteNotes"
 import { Link } from '@tanstack/react-router';
+import { WebsiteNotes } from ".."
 
 interface WebsiteDetailProps {
   website?: Website | null
@@ -54,11 +54,14 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
   screenshotLoading,
 }) => {
   // Memoize the handleNotesChange to prevent recreation on every render
+  const websiteId = website?.id;
+
   const handleNotesChange = useCallback((updatedNotes: any) => {
-    if (website) {
-      onUpdateWebsite(website.id, { notes: updatedNotes });
+    if (websiteId) {
+      onUpdateWebsite(websiteId, { notes: updatedNotes });
     }
-  }, [website?.id, onUpdateWebsite]);
+  }, [websiteId, onUpdateWebsite]);
+
 
   // Early return if website is not available
   if (!website) {
@@ -298,7 +301,7 @@ const WebsiteDetail: React.FC<WebsiteDetailProps> = ({
           </div>
         )}
 
-        {/* Notes Section - Fixed placement */}
+        {/* Notes Section - Fixed to pass notes prop correctly */}
         <div className="notes-section">
           <WebsiteNotes
             notes={website.notes}

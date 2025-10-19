@@ -17,10 +17,10 @@ export interface Website {
   wpscanResult?: WpscanResult | null;
   description?: string;
   tags?: string[];
-  notes?: WebsiteNotes;
+  notes?: WebsiteNotesProps;
 }
 
-export interface WebsiteNotes {
+export interface WebsiteNotesProps {
   dnsHistory: DNSRecord[];
   projectAccess: ProjectAccess;
   generalNotes: string;
