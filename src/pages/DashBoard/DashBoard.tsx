@@ -1,16 +1,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { listen } from '@tauri-apps/api/event';
-import { Website, Industry, ProjectStatus, PROJECT_STATUSES } from "../../../models/website";
-import { TauriService } from "../../../services/TauriService";
-import { ExportStatusPopup, IndustryFilter, ProjectStatusFilter, WebsiteCard, WebsiteDetail } from './index';
-import { AppError } from "../../../hooks/useErrorHandler";
-import { ScreenshotProgress } from "../../../models/ScreenshotProgress";
 import { Cloud } from "lucide-react";
-import CloudBackup from "../../CloudBackUp/CloudBackup";
-import ImportWebsites from "./ImportStatusPopup/ImportStatusPopup";
+import CloudBackup from "../../components/CloudBackUp/CloudBackup";
+import { AppError } from "../../hooks/useErrorHandler";
+import { ScreenshotProgress } from "../../models/ScreenshotProgress";
+import { ProjectStatus, Website, Industry, PROJECT_STATUSES } from "../../models/website";
+import { TauriService } from "../../services/TauriService";
+import ExportStatusPopup from "./ExportStatusPopup/ExportStatusPopup";
+import IndustryFilter from "./IndustryFilter/IndustryFilter";
+import ProjectStatusFilter from "./ProjectStatusFilter/ProjectStatusFilter";
+import WebsiteCard from "./WebsiteCard/WebsiteCard";
+import WebsiteDetail from "./WebsiteDetail/WebSiteDetail";
+import ImportSettingsPopup from "./ImportSettingsPopup/ImportSettingsPopup";
 
-// Custom status storage interface
 interface CustomStatusStorage {
   customStatuses: { value: ProjectStatus; label: string; color: string }[];
 }
@@ -23,13 +26,13 @@ function DashBoard() {
   const [cloudProvider, setCloudProvider] = useState<string | null>(null);
   const [syncFrequency, setSyncFrequency] = useState<number>(0);
   const [screenshotProgress, setScreenshotProgress] = useState<ScreenshotProgress | null>(null);
-
   const [errors, setErrors] = useState<AppError[]>([]);
   const [selectedIndustry, setSelectedIndustry] = useState<Industry | 'all'>('all');
   const [selectedProjectStatus, setSelectedProjectStatus] = useState<ProjectStatus | 'all'>('all');
-
   const [selectedWebsite, setSelectedWebsite] = useState<Website | null>(null);
   const [isExportPopupOpen, setIsExportPopupOpen] = useState(false);
+  const [isImportPopupOpen, setIsImportPopupOpen] = useState(false);
+  const [importMode, setImportMode] = useState<'websites' | 'full-backup'>('websites');
   const [exportStatus, setExportStatus] = useState<{
     exportedWebsites: Website[];
     exportDestination: string;
@@ -42,7 +45,7 @@ function DashBoard() {
     exportTime: new Date(),
   });
   const [customStatuses, setCustomStatuses] = useState<{ value: ProjectStatus; label: string; color: string }[]>([]);
-  const [showImport, setShowImport] = useState(false);
+
 
   const navigate = useNavigate();
 
@@ -192,17 +195,17 @@ function DashBoard() {
 
     try {
       const updatedWebsite = await TauriService.takeScreenshot(website);
-      
+
       // Update with screenshot and clear processing state
       setWebsites(websites.map(w =>
         w.id === id ? { ...updatedWebsite, isProcessing: false } : w
       ));
-      
+
       addError(`Screenshot taken for ${website.name}`, 'info');
     } catch (error) {
       console.error("Error taking screenshot:", error);
       addError(`Failed to take screenshot: ${website.name}`);
-      
+
       // Clear processing state on error
       setWebsites(websites.map(w =>
         w.id === id ? { ...w, isProcessing: false } : w
@@ -323,7 +326,8 @@ function DashBoard() {
         websites: websites,
         customStatuses: customStatuses,
         exportDate: new Date().toISOString(),
-        version: '1.0'
+        version: '1.0',
+        type: 'full-backup' // Add type identifier
       };
 
       const data = JSON.stringify(exportData, null, 2);
@@ -331,12 +335,13 @@ function DashBoard() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `website_settings_${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `website_backup_${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
+      // Update export status to show it's a full backup
       setExportStatus({
         exportedWebsites: websites,
         exportDestination: 'Local File',
@@ -350,7 +355,6 @@ function DashBoard() {
       addError('Export failed');
     }
   };
-
   const handleWebsiteClick = (website: Website) => {
     setSelectedWebsite(website);
   };
@@ -409,12 +413,12 @@ function DashBoard() {
       if (importedData.websites && Array.isArray(importedData.websites)) {
         setWebsites(importedData.websites);
         await TauriService.saveWebsites(importedData.websites);
-        
+
         // Import custom statuses if they exist
         if (importedData.customStatuses && Array.isArray(importedData.customStatuses)) {
           setCustomStatuses(importedData.customStatuses);
         }
-        
+
         alert(`Successfully imported ${importedData.websites.length} websites!`);
       } else {
         // Fallback for old format (just array of websites)
@@ -512,10 +516,19 @@ function DashBoard() {
 
         <div className="import-export-actions">
           <button className="scan-btn" onClick={handleExport}>
-            Export Settings
+            Export Full Backup
           </button>
-          <button className="scan-btn" onClick={() => setShowImport(!showImport)}>
-            Import Settings
+          <button className="scan-btn" onClick={() => {
+            setImportMode('websites');
+            setIsImportPopupOpen(true);
+          }}>
+            Import Websites Only
+          </button>
+          <button className="scan-btn" onClick={() => {
+            setImportMode('full-backup');
+            setIsImportPopupOpen(true);
+          }}>
+            Import Full Backup
           </button>
         </div>
       </>
@@ -679,12 +692,14 @@ function DashBoard() {
           exportTime={exportStatus.exportTime}
           totalWebsites={websites.length}
         />
-        {showImport && (
-          <ImportWebsites
-            onImportComplete={handleImportComplete}
-            variant="compact"
-          />
-        )}
+
+      
+        <ImportSettingsPopup
+          isOpen={isImportPopupOpen}
+          onClose={() => setIsImportPopupOpen(false)}
+          mode={importMode}
+          onImportComplete={handleImportComplete}
+        />
       </div>
     </main>
   );

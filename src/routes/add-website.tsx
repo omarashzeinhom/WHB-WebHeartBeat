@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import AddWebsite from '../components/Pages/AddWebSite/AddWebsite'
+import AddWebsite from '../pages/AddWebSite/AddWebsite'
 
 export const Route = createFileRoute('/add-website')({
   component: AddWebsiteRoute,

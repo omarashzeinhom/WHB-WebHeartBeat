@@ -16,7 +16,7 @@ import {
   HandHeart,
   Circle
 } from "lucide-react"
-import type { Industry } from "../../../../models/website"
+import type { Industry } from "../../../models/website"
 import "./IndustryFilter.css"
 
 interface IndustryFilterProps {

@@ -11,7 +11,7 @@ import {
   Clock,
   ExternalLink
 } from 'lucide-react';
-import { Website } from '../../../../models/website';
+import { Website } from '../../../models/website';
 import './ExportStatusPopup.css';
 
 interface ExportStatusPopupProps {

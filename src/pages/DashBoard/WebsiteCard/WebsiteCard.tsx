@@ -1,7 +1,7 @@
 import React from 'react';
 import './WebsiteCard.css';
-import { Industry, Website, ProjectStatus, PROJECT_STATUSES } from '../../../../models/website';
-import { FavoriteFilledIcon, FavoriteIcon, ScreenshotIcon, StatusIcon, OpenLinkIcon, DeleteIcon } from '../../../../assets/icons/icons';
+import { Industry, Website, ProjectStatus, PROJECT_STATUSES } from '../../../models/website';
+import { FavoriteFilledIcon, FavoriteIcon, ScreenshotIcon, StatusIcon, OpenLinkIcon, DeleteIcon } from '../../../assets/icons/icons';
 import IndustrySelector from '../IndustrySelector/IndustrySelector';
 import { open } from '@tauri-apps/plugin-shell';
 

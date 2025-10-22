@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import WebsiteDetail from '../components/Pages/DashBoard/WebsiteDetail/WebSiteDetail'
+import WebsiteDetail from '../pages/DashBoard/WebsiteDetail/WebSiteDetail'
 import { useState, useEffect } from 'react'
 import { Website } from '../models/website'
 import { TauriService } from '../services/TauriService'

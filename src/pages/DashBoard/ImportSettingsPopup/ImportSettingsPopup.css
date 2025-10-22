@@ -1,0 +1,78 @@
+.import-popup {
+  max-width: 500px;
+}
+
+.import-description {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.import-mode-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.file-info {
+  margin: 12px 0;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  display: flex;
+  justify-content: between;
+  align-items: center;
+}
+
+.file-structure {
+  margin-left: auto;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.file-structure.full-backup {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.file-structure.websites-only {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.file-select-btn {
+  width: 100%;
+  padding: 12px;
+  border: 2px dashed #ddd;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.file-select-btn:hover {
+  border-color: #007acc;
+  background: #f8fdff;
+}
+
+.import-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.import-mode label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}

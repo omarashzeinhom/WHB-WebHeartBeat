@@ -1,7 +1,7 @@
 // components/Pages/Dashboard/WpscanResults/WpscanResults.tsx
 import React from 'react';
-import { Website } from '../../../../models/website';
-import { WpscanResult, Vulnerability as WpscanVulnerability, Theme, Plugin } from '../../../../models/WpscanResult';
+import { Website } from '../../../models/website';
+import { WpscanResult, Vulnerability as WpscanVulnerability, Theme, Plugin } from '../../../models/WpscanResult';
 import './WpscanResults.css';
 
 interface WpscanResultsProps {

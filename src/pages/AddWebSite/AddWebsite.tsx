@@ -1,8 +1,11 @@
-import { useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { Industry, ProjectStatus } from "../../../models/website"; // Import ProjectStatus
-import AddWebsiteForm from "../../AddWebsiteForm/AddWebsiteForm";
-import { TauriService } from "../../../services/TauriService";
+
+import './AddWebsite.css';
+import { useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+import { Industry, ProjectStatus } from '../../models/website';
+import { TauriService } from '../../services/TauriService';
+import { AddWebsiteForm } from '../DashBoard';
+
 import {
   ArrowLeft,
   AlertCircle,
@@ -13,9 +16,9 @@ import {
   GraduationCap,
   Cpu,
   Globe,
-  BarChart3
+  BarChart3,
+  Link
 } from 'lucide-react';
-import './AddWebsite.css';
 
 interface AddWebsitePageProps {
   onWebsiteAdded?: (website: any) => void;

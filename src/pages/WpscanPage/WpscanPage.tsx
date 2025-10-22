@@ -1,8 +1,8 @@
 // components/Pages/WpscanPage/WpscanPage.tsx
 import React, { useState } from 'react';
 import './WpscanPage.css';
-import { useWpscan } from '../../../hooks/useWpscan';
-import { WpscanResult, Plugin, Theme, User, Vulnerability } from '../../../models/WpscanResult';
+import { useWpscan } from '../../hooks/useWpscan';
+import { WpscanResult, Plugin, Theme, User, Vulnerability } from '../../models/WpscanResult';
 
 export default function WpscanPage() {
   const [url, setUrl] = useState('');

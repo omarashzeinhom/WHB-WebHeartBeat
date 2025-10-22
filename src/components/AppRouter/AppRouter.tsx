@@ -1,11 +1,11 @@
 // components/AppRouter/AppRouter.tsx
 import React from 'react';
 import { useNavigation } from '../../hooks/useNavigation';
-import ComingSoon from '../Pages/ComingSoon/ComingSoon';
-import AddWebsite from '../Pages/AddWebSite/AddWebsite';
-import DashBoard from '../Pages/DashBoard/DashBoard';
-import WpscanPage from '../Pages/WpscanPage/WpscanPage';
-import Settings from '../Pages/Settings/SettingsPage';
+import ComingSoon from '../../pages/ComingSoon/ComingSoon';
+import AddWebsite from '../../pages/AddWebSite/AddWebsite';
+import DashBoard from '../../pages/DashBoard/DashBoard';
+import WpscanPage from '../../pages/WpscanPage/WpscanPage';
+import Settings from '../../pages/Settings/SettingsPage';
 const AppRouter: React.FC = () => {
   const { currentPage, pageParams } = useNavigation();
 

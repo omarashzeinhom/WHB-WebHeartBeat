@@ -1,7 +1,7 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Website } from '../models/website'
-import { NavigationBar } from '../components';
+import { NavigationBar } from '../pages/DashBoard';
 
 export const Route = createRootRoute({
   component: RootComponent,

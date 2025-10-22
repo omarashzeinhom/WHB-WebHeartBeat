@@ -14,7 +14,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import './Settings.css';
-import { TauriService } from '../../../services/TauriService';
+import { TauriService } from '../../services/TauriService';
 
 interface ApiKeys {
   wappalyzer?: string;

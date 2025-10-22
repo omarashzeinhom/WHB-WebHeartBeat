@@ -1,4 +1,4 @@
-import { Website } from "../../../../models/website";
+import { Website } from "../../../models/website";
 
 interface WpscanSettingsProps {
   onApiKeyChange: (apiKey: string) => void;

@@ -24,10 +24,10 @@ import {
   Newspaper,
   Plane,
 } from "lucide-react"
-import type { Website } from "../../../../models/website"
+import type { Website } from "../../../models/website"
 import "./WebsiteDetail.css"
 import { Link } from '@tanstack/react-router';
-import { WebsiteNotes } from ".."
+import WebsiteNotes from "../WebSiteNotes/WebSiteNotes"
 
 interface WebsiteDetailProps {
   website?: Website | null

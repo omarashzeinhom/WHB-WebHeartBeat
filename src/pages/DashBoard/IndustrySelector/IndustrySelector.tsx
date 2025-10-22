@@ -16,7 +16,7 @@ import {
   Check,
   X
 } from 'lucide-react';
-import { Industry } from '../../../../models/website';
+import { Industry } from '../../../models/website';
 import './IndustrySelector.css';
 
 interface IndustrySelectorProps {

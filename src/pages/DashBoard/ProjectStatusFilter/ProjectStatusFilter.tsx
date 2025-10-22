@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './ProjectStatusFilter.css';
-import { PROJECT_STATUSES, ProjectStatus } from '../../../../models/website';
+import { PROJECT_STATUSES, ProjectStatus } from '../../../models/website';
 
 interface ProjectStatusFilterProps {
   selectedStatus: ProjectStatus | 'all';
