@@ -75,7 +75,7 @@ const ImportSettingsPopup: React.FC<ImportSettingsPopupProps> = ({
 
     try {
       const text = await file.text();
-      
+
       // First, validate it's valid JSON
       let parsed;
       try {
@@ -114,6 +114,7 @@ const ImportSettingsPopup: React.FC<ImportSettingsPopupProps> = ({
   };
 
   const validateFullBackupFile = (parsed: any, text: string) => {
+    console.warn(text);
     // For full backup, expect the backup structure
     if (!parsed.websites || !Array.isArray(parsed.websites)) {
       setValidationResult({
@@ -204,7 +205,7 @@ const ImportSettingsPopup: React.FC<ImportSettingsPopupProps> = ({
       if (mode === 'full-backup') {
         // For full backup, import everything
         const backupData = parsed as BackupFileStructure;
-        
+
         // Import websites
         const importedWebsites = await invoke<Website[]>('import_websites', {
           jsonData: JSON.stringify(backupData.websites),
@@ -300,8 +301,8 @@ const ImportSettingsPopup: React.FC<ImportSettingsPopupProps> = ({
           onChange={handleFileSelect}
           style={{ display: 'none' }}
         />
-        
-        <button 
+
+        <button
           className="file-select-btn"
           onClick={() => fileInputRef.current?.click()}
         >
