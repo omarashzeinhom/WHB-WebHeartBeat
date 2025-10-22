@@ -1,6 +1,6 @@
-/* components/WebsiteDetail/WebsiteDetail.css */
+/* Website Detail Component - Mobile Responsive */
+
 .website-detail {
-  max-width: 1200px;
   margin: 0 auto;
   padding: 1.25em;
 }
@@ -12,6 +12,8 @@
   margin-bottom: 2rem;
   padding-bottom: 1.25em;
   border-bottom: 1px solid var(--color-border);
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .back-btn {
@@ -25,6 +27,7 @@
   font-family: "Lato", sans-serif;
   font-size: 0.875em;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .back-btn:hover {
@@ -73,6 +76,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .website-header h1 {
@@ -82,6 +87,8 @@
   line-height: var(--line-height-h1-desktop);
   font-weight: 700;
   font-family: "Red Hat Display", sans-serif;
+  flex: 1;
+  min-width: 200px;
 }
 
 .status {
@@ -90,24 +97,29 @@
   font-size: 0.875em;
   font-weight: 600;
   font-family: "Lato", sans-serif;
+  white-space: nowrap;
 }
 
 .status-green {
   background: #d4edda;
   color: #155724;
 }
+
 .status-blue {
   background: #d1ecf1;
   color: #0c5460;
 }
+
 .status-orange {
   background: #fff3cd;
   color: #856404;
 }
+
 .status-red {
   background: #f8d7da;
   color: #721c24;
 }
+
 .status-gray {
   background: #e2e3e5;
   color: #383d41;
@@ -123,6 +135,7 @@
   font-size: 1.1em;
   font-family: "Lato", sans-serif;
   font-weight: 600;
+  word-break: break-all;
 }
 
 .website-url a:hover {
@@ -146,6 +159,7 @@
   font-size: 0.875em;
   font-family: "Lato", sans-serif;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .website-description,
@@ -189,6 +203,7 @@
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
 
 .action-btn {
@@ -200,6 +215,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
 .action-btn.primary {
@@ -246,7 +262,6 @@
   border: 1px solid var(--color-border);
 }
 
-/* Added horizontal screenshot container with 16:10 aspect ratio */
 .screenshot-container-horizontal {
   width: 100%;
   max-width: 1200px;
@@ -311,6 +326,8 @@
   background: var(--color-background);
   border-radius: 0.5em;
   border: 1px solid var(--color-border);
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .scan-item span:first-child {
@@ -324,6 +341,7 @@
   padding: 0.25em 0.75em;
   border-radius: 1.25em;
   font-size: 0.875em;
+  white-space: nowrap;
 }
 
 .count.danger {
@@ -336,7 +354,6 @@
   color: #155724;
 }
 
-/* Enhanced website-not-found styling */
 .website-not-found {
   text-align: center;
   padding: 3rem 1rem;
@@ -348,7 +365,6 @@
   font-size: 1.1em;
 }
 
-/* Added animation for loading spinner */
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -362,15 +378,22 @@
   animation: spin 1s linear infinite;
 }
 
+/* Mobile Responsive Styles */
 @media (max-width: 768px) {
   .website-detail {
-    padding: 0.625em;
+    padding: 0.75em;
   }
 
   .detail-header {
     flex-direction: column;
-    gap: 1rem;
     align-items: flex-start;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .back-btn {
+    width: 100%;
+    text-align: center;
   }
 
   .website-header {
@@ -382,10 +405,40 @@
   .website-header h1 {
     font-size: var(--font-size-h1-mobile);
     line-height: var(--line-height-h1-mobile);
+    width: 100%;
+  }
+
+  .status {
+    font-size: 0.8em;
+    padding: 0.3em 0.8em;
+  }
+
+  .website-meta {
+    gap: 0.5rem;
+  }
+
+  .industry-tag,
+  .last-checked,
+  .wordpress-tag {
+    font-size: 0.8em;
+    padding: 0.3em 0.8em;
+  }
+
+  .website-description h3,
+  .website-tags h3 {
+    font-size: var(--font-size-h3-mobile);
+    line-height: var(--line-height-h3-mobile);
   }
 
   .website-actions {
     flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .action-btn {
+    width: 100%;
+    text-align: center;
+    padding: 0.875em 1.25em;
   }
 
   .vitals-grid,
@@ -393,10 +446,84 @@
     grid-template-columns: 1fr;
   }
 
+  .vital-item {
+    padding: 0.875em;
+  }
+
+  .scan-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .screenshot-section h3,
   .vitals-section h3,
   .security-section h3 {
     font-size: var(--font-size-h3-mobile);
     line-height: var(--line-height-h3-mobile);
+  }
+
+  .screenshot-section,
+  .vitals-section,
+  .security-section {
+    padding: 1.25em;
+  }
+}
+
+@media (max-width: 480px) {
+  .website-detail {
+    padding: 0.5em;
+  }
+
+  .detail-header {
+    gap: 8px;
+  }
+
+  .website-header h1 {
+    font-size: 1.75em;
+  }
+
+  .website-url a {
+    font-size: 0.95em;
+  }
+
+  .website-actions {
+    gap: 0.5rem;
+  }
+
+  .action-btn {
+    padding: 0.75em 1em;
+    font-size: 0.8em;
+  }
+
+  .vitals-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vital-item {
+    padding: 0.75em;
+  }
+
+  .vital-label {
+    font-size: 0.8em;
+  }
+
+  .vital-value {
+    font-size: 1.1em;
+  }
+
+  .scan-item {
+    padding: 0.875em;
+    font-size: 0.9em;
+  }
+
+  .count {
+    font-size: 0.8em;
+    padding: 0.2em 0.6em;
+  }
+
+  .screenshot-section,
+  .vitals-section,
+  .security-section {
+    padding: 1em;
   }
 }

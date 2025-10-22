@@ -29,13 +29,6 @@ export interface WebsiteNotes {
   lastUpdated: string;
 }
 
-export interface DNSRecord {
-  type: 'A' | 'MX' | 'TXT' | 'CNAME' | 'NS';
-  value: string;
-  ttl?: number;
-  lastChecked: string;
-}
-
 export interface ProjectAccess {
   credentials: Credential[];
   accessNotes: string;
@@ -93,3 +86,55 @@ export const PROJECT_STATUSES: { value: ProjectStatus; label: string; color: str
 ];
 
 export type Industry = 'general' | 'ecommerce' | 'finance' | 'healthcare' | 'education' | 'technology' | 'media' | 'travel' | 'government' | 'nonprofit';
+
+// Types (keep these in a separate types file, but here for reference)
+export interface DNSRecord {
+  type: 'A' | 'MX' | 'TXT' | 'CNAME' | 'NS' | 'AAAA';
+  value: string;
+  ttl?: number;
+  lastChecked: string;
+}
+
+export interface Credential {
+  service: string;
+  username: string;
+  url: string;
+  notes: string;
+}
+
+export interface Vulnerability {
+  name: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  description: string;
+  status: 'open' | 'in-progress' | 'fixed';
+  discovered: string;
+}
+
+export interface ProjectAccess {
+  credentials: Credential[];
+  accessNotes: string;
+  warningAcknowledged: boolean;
+}
+
+
+export interface WebsiteReport {
+  summary: string;
+  performance: string;
+  security: string;
+  recommendations: string;
+  generatedDate: string;
+}
+
+export interface WebsiteNotes {
+  dnsHistory: DNSRecord[];
+  projectAccess: ProjectAccess;
+  generalNotes: string;
+  security: SecurityNotes;
+  report: WebsiteReport;
+  lastUpdated: string;
+}
+
+export interface WebsiteNotesProps {
+  notes: WebsiteNotes | null;
+  onNotesChange: (notes: WebsiteNotes) => void;
+}

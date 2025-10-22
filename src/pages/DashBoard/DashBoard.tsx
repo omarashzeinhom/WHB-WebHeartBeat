@@ -139,16 +139,21 @@ function DashBoard() {
     }
   };
 
-  const loadWebsites = async () => {
+ const loadWebsites = async () => {
     try {
       const websitesData = await TauriService.loadWebsites();
       setWebsites(websitesData);
+      
+      // If no websites, prompt user to add one
+      if (websitesData.length === 0) {
+        addError("No websites found. Add your first website to start monitoring!", "info");
+      }
     } catch (error) {
       console.error("Failed to load websites:", error);
-      addError("Failed to load websites");
+      addError("Failed to load websites. Please try again or contact support.", "error");
     }
   };
-
+  
   const saveWebsites = async (websitesToSave: Website[]) => {
     try {
       await TauriService.saveWebsites(websitesToSave);
