@@ -175,16 +175,6 @@
   font-weight: 500;
 }
 
-.screenshot-preview {
-  margin-top: 15px;
-  border-radius: 10px;
-  overflow: hidden;
-  min-height: 20vh;
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  border: 1px solid var(--card-border-light);
-}
 .screenshot-preview > img {
   margin-top: 15px;
   border-radius: 10px;

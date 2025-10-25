@@ -36,26 +36,31 @@ export interface ProjectAccess {
 }
 
 export interface Credential {
+  id?: string; // Make optional since you might create new ones without ID
   service: string;
   username: string;
-  password?: string; // Should be encrypted in production
   url: string;
   notes: string;
+  type?: string; // Add this to match what your components expect
 }
 
 export interface SecurityNotes {
-  vulnerabilities: Vulnerability[];
+  vulnerabilities: SecurityVulnerability[];
   openPorts: Port[];
   exposedInfo: string;
   securityScanResults: string;
 }
 
-export interface Vulnerability {
+export interface SecurityVulnerability {
+  id?: string; // Make optional
   name: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
   description: string;
   status: 'open' | 'fixed' | 'in-progress';
   discovered: string;
+  title?: string; // Add for compatibility
+  vuln_type?: string; // Add for compatibility
+  fixed_in?: string; // Add for compatibility
 }
 
 export interface Port {
@@ -73,6 +78,13 @@ export interface WebsiteReport {
   generatedDate: string;
 }
 
+export interface DNSRecord {
+  type: 'A' | 'MX' | 'TXT' | 'CNAME' | 'NS' | 'AAAA';
+  value: string;
+  ttl?: number;
+  lastChecked: string;
+}
+
 export type ProjectStatus = 'wip' | 'building' | 'developing' | 'designing' | 'figma_prototype' | 'client_access' | 'info_gathering' | string;
 
 export const PROJECT_STATUSES: { value: ProjectStatus; label: string; color: string }[] = [
@@ -86,55 +98,3 @@ export const PROJECT_STATUSES: { value: ProjectStatus; label: string; color: str
 ];
 
 export type Industry = 'general' | 'ecommerce' | 'finance' | 'healthcare' | 'education' | 'technology' | 'media' | 'travel' | 'government' | 'nonprofit';
-
-// Types (keep these in a separate types file, but here for reference)
-export interface DNSRecord {
-  type: 'A' | 'MX' | 'TXT' | 'CNAME' | 'NS' | 'AAAA';
-  value: string;
-  ttl?: number;
-  lastChecked: string;
-}
-
-export interface Credential {
-  service: string;
-  username: string;
-  url: string;
-  notes: string;
-}
-
-export interface Vulnerability {
-  name: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  description: string;
-  status: 'open' | 'in-progress' | 'fixed';
-  discovered: string;
-}
-
-export interface ProjectAccess {
-  credentials: Credential[];
-  accessNotes: string;
-  warningAcknowledged: boolean;
-}
-
-
-export interface WebsiteReport {
-  summary: string;
-  performance: string;
-  security: string;
-  recommendations: string;
-  generatedDate: string;
-}
-
-export interface WebsiteNotes {
-  dnsHistory: DNSRecord[];
-  projectAccess: ProjectAccess;
-  generalNotes: string;
-  security: SecurityNotes;
-  report: WebsiteReport;
-  lastUpdated: string;
-}
-
-export interface WebsiteNotesProps {
-  notes: WebsiteNotes | null;
-  onNotesChange: (notes: WebsiteNotes) => void;
-}
