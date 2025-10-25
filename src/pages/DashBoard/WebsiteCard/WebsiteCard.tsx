@@ -61,6 +61,7 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
   onIndustryChange,
   onProjectStatusChange,
   onWebsiteClick,
+  isProcessing,
   loading,
   screenshotLoading,
   projectStatuses = PROJECT_STATUSES,
@@ -90,11 +91,11 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
 
   const handleCardClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (target.closest('.action-btn') || 
-        target.closest('.industry-selector') || 
-        target.closest('.favorite-btn') ||
-        target.closest('.project-status-selector') ||
-        target.closest('.website-link')) {
+    if (target.closest('.action-btn') ||
+      target.closest('.industry-selector') ||
+      target.closest('.favorite-btn') ||
+      target.closest('.project-status-selector') ||
+      target.closest('.website-link')) {
       return;
     }
     onWebsiteClick(website);
@@ -111,14 +112,14 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
   const handleOpenLink = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Security validation
     if (!isValidUrl(website.url)) {
       console.error('Invalid URL:', website.url);
       alert('Invalid URL: Only HTTP and HTTPS links are allowed.');
       return;
     }
-    
+
     try {
       await open(formattedUrl);
     } catch (error) {
@@ -134,7 +135,7 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
       style={{ cursor: 'pointer' }}
     >
       {/* Project Status Badge - Top Left */}
-      <div 
+      <div
         className="project-status-badge"
         style={{ backgroundColor: projectStatusInfo.color }}
         title={`Project Status: ${projectStatusInfo.label}`}
@@ -143,13 +144,18 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
       </div>
 
       {/* Screenshot preview */}
-      {website.screenshot && (
+      {website.isProcessing ? (
+        <div className="screenshot-loading-container">
+          <div className="screenshot-spinner"></div>
+          <span className="screenshot-loading-text">Capturing screenshot...</span>
+        </div>
+      ) : website.screenshot ? (
         <div className="screenshot-preview">
-          <img
-            src={website.screenshot}
-            alt={`Screenshot of ${website.name}`}
-            className="website-screenshot"
-          />
+          <img src={website.screenshot} alt={`Screenshot of ${website.name}`} />
+        </div>
+      ) : (
+        <div className="screenshot-placeholder">
+          <span>No screenshot available</span>
         </div>
       )}
 
@@ -189,7 +195,7 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
 
       {/* Website URL display - clickable using Tauri Opener */}
       <div className="website-url">
-        <span 
+        <span
           className="website-link"
           onClick={handleOpenLink}
           title={`Open ${website.url}`}
@@ -201,7 +207,7 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
 
       {/* Project Status Selector (simple dropdown) */}
       <div className="project-status-section" onClick={(e) => e.stopPropagation()}>
-        <select 
+        <select
           className="project-status-selector"
           value={website.projectStatus}
           onChange={handleProjectStatusChange}
@@ -217,13 +223,14 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
       {/* Action buttons */}
       <div className="card-actions">
         <button
+
           className="action-btn"
           onClick={handleActionClick(() => onTakeScreenshot(website.id))}
-          disabled={screenshotLoading}
+          disabled={website.isProcessing || screenshotLoading}
           title="Take Screenshot"
         >
           <img src={ScreenshotIcon} alt="Screenshot" />
-          <span>Screenshot</span>
+          <span>{website.isProcessing ? 'Capturing...' : 'Screenshot'}</span>
         </button>
 
         <button

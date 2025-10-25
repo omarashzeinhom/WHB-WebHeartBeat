@@ -90,19 +90,19 @@ export class TauriService {
     }
   }
 
-  static async takeScreenshot(website: Website): Promise<Website> {
-    try {
-      const result = await invoke('take_screenshot', { url: website.url }) as { screenshot: string };
-      return {
-        ...website,
-        screenshot: result.screenshot
-      };
-    } catch (error) {
-      console.error("Error taking screenshot:", error);
-      throw error;
-    }
+static async takeScreenshot(website: Website): Promise<Website> {
+  try {
+    const screenshot = await invoke('take_screenshot', { url: website.url }) as string;
+    return {
+      ...website,
+      screenshot: screenshot, // Direct string, not object
+      lastChecked: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error("Error taking screenshot:", error);
+    throw error;
   }
-
+}
   static async takeBulkScreenshots(): Promise<void> {
     try {
       await invoke('take_bulk_screenshots');

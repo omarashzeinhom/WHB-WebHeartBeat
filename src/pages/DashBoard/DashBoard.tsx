@@ -139,11 +139,11 @@ function DashBoard() {
     }
   };
 
- const loadWebsites = async () => {
+  const loadWebsites = async () => {
     try {
       const websitesData = await TauriService.loadWebsites();
       setWebsites(websitesData);
-      
+
       // If no websites, prompt user to add one
       if (websitesData.length === 0) {
         addError("No websites found. Add your first website to start monitoring!", "info");
@@ -153,7 +153,7 @@ function DashBoard() {
       addError("Failed to load websites. Please try again or contact support.", "error");
     }
   };
-  
+
   const saveWebsites = async (websitesToSave: Website[]) => {
     try {
       await TauriService.saveWebsites(websitesToSave);
@@ -185,39 +185,60 @@ function DashBoard() {
     setLoading(false);
   };
 
-  // FIXED: Single screenshot function with proper state management
-  const takeScreenshot = async (id: number) => {
-    const website = websites.find(w => w.id === id);
+  // Dashboard component - Fixed takeScreenshot function with proper loading state
 
+  const takeScreenshot = async (id: number) => {
+    console.log('Starting screenshot for ID:', id);
+
+    const website = websites.find(w => w.id === id);
     if (!website) {
+      console.error('Website not found for ID:', id);
       return;
     }
 
-    // Set processing state immediately
-    setWebsites(websites.map(w =>
-      w.id === id ? { ...w, isProcessing: true } : w
-    ));
+    console.log('Taking screenshot for:', website.url);
+
+    // Set loading state
+    setWebsites(prevWebsites =>
+      prevWebsites.map(w =>
+        w.id === id ? { ...w, isProcessing: true } : w
+      )
+    );
 
     try {
+      console.log('Calling Tauri service...');
+
+      // FIXED: takeScreenshot now returns the updated website directly
       const updatedWebsite = await TauriService.takeScreenshot(website);
 
-      // Update with screenshot and clear processing state
-      setWebsites(websites.map(w =>
-        w.id === id ? { ...updatedWebsite, isProcessing: false } : w
-      ));
+      console.log('Screenshot completed:', updatedWebsite.screenshot ? 'Success' : 'Failed');
+
+      // Update state with new screenshot - explicitly type as Website
+      setWebsites(prevWebsites =>
+        prevWebsites.map(w =>
+          w.id === id
+            ? { ...updatedWebsite, isProcessing: false } as Website
+            : w
+        )
+      );
 
       addError(`Screenshot taken for ${website.name}`, 'info');
     } catch (error) {
-      console.error("Error taking screenshot:", error);
-      addError(`Failed to take screenshot: ${website.name}`);
+      console.error('Screenshot error:', error);
+      addError(`Failed to take screenshot: ${website.name}`, 'error');
 
-      // Clear processing state on error
-      setWebsites(websites.map(w =>
-        w.id === id ? { ...w, isProcessing: false } : w
-      ));
+      // Remove loading state on error
+      setWebsites(prevWebsites =>
+        prevWebsites.map(w =>
+          w.id === id
+            ? { ...w, isProcessing: false } as Website
+            : w
+        )
+      );
     }
   };
 
+  
   const handleCloudSync = async () => {
     if (!cloudProvider) return;
 
@@ -698,7 +719,7 @@ function DashBoard() {
           totalWebsites={websites.length}
         />
 
-      
+
         <ImportSettingsPopup
           isOpen={isImportPopupOpen}
           onClose={() => setIsImportPopupOpen(false)}
