@@ -295,3 +295,89 @@ pub async fn open_backup_folder() -> Result<(), String> {
 
     Ok(())
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BackupInfo {
+    pub filename: String,
+    pub path: String,
+    pub timestamp: String,
+    pub size: u64,
+    pub is_local: bool,
+}
+
+/// List all available backups (both local and cloud)
+#[command]
+pub async fn list_cloud_backups() -> Result<Vec<BackupInfo>, String> {
+    let mut backups = Vec::new();
+    
+    // List local backups
+    let backup_dir = "backups";
+    if let Ok(entries) = fs::read_dir(backup_dir) {
+        for entry in entries.flatten() {
+            if let Ok(metadata) = entry.metadata() {
+                if metadata.is_file() {
+                    let filename = entry.file_name().to_string_lossy().to_string();
+                    if filename.ends_with(".json") {
+                        let path = entry.path().to_string_lossy().to_string();
+                        
+                        // Extract timestamp from filename
+                        let timestamp = filename
+                            .replace("website_backup_", "")
+                            .replace(".json", "");
+                        
+                        backups.push(BackupInfo {
+                            filename,
+                            path: path.clone(),
+                            timestamp,
+                            size: metadata.len(),
+                            is_local: true,
+                        });
+                    }
+                }
+            }
+        }
+    }
+    
+    // Sort by timestamp (newest first)
+    backups.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    
+    Ok(backups)
+}
+
+/// Restore from a backup file
+#[command]
+pub async fn restore_from_backup(backup_path: String) -> Result<Vec<Website>, String> {
+    let backup_data = fs::read_to_string(&backup_path)
+        .map_err(|e| format!("Failed to read backup file: {}", e))?;
+    
+    let websites: Vec<Website> = serde_json::from_str(&backup_data)
+        .map_err(|e| format!("Failed to parse backup data: {}", e))?;
+    
+    Ok(websites)
+}
+
+/// Delete a backup file
+#[command]
+pub async fn delete_backup(backup_path: String) -> Result<(), String> {
+    fs::remove_file(&backup_path)
+        .map_err(|e| format!("Failed to delete backup: {}", e))?;
+    
+    Ok(())
+}
+
+/// Get backup statistics
+#[command]
+pub async fn get_backup_stats() -> Result<serde_json::Value, String> {
+    let backups = list_cloud_backups().await?;
+    
+    let total_size: u64 = backups.iter().map(|b| b.size).sum();
+    let local_count = backups.iter().filter(|b| b.is_local).count();
+    
+    Ok(serde_json::json!({
+        "total_backups": backups.len(),
+        "local_backups": local_count,
+        "cloud_backups": backups.len() - local_count,
+        "total_size_bytes": total_size,
+        "total_size_mb": (total_size as f64) / (1024.0 * 1024.0),
+    }))
+}

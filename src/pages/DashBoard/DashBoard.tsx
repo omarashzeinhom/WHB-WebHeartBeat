@@ -248,7 +248,7 @@ function DashBoard() {
       for (const website of websites) {
         await TauriService.saveToCloud(website, cloudProvider);
       }
-      console.log("Cloud sync completed");
+      showToast('Cloud sync completed!', 'success');
     } catch (error) {
       console.error("Cloud sync failed:", error);
       addError("Cloud sync failed");

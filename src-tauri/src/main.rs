@@ -43,7 +43,12 @@ fn main() {
             controllers::cloud_controller::disconnect_google_drive,
             controllers::cloud_controller::backup_local,
             controllers::cloud_controller::open_backup_folder,
-            // Settings Controllers (NEW)
+            // NEW Cloud Backup Commands
+            controllers::cloud_controller::list_cloud_backups,
+            controllers::cloud_controller::restore_from_backup,
+            controllers::cloud_controller::delete_backup,
+            controllers::cloud_controller::get_backup_stats,
+            // Settings Controllers
             controllers::settings_controller::save_settings,
             controllers::settings_controller::load_settings,
             controllers::settings_controller::get_api_key,
