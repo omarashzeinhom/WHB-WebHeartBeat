@@ -181,6 +181,3 @@ impl Default for WebsiteReport {
         }
     }
 }
-
-// We also have the Industry enum, but it's not used in Website, so we can remove it or leave it?
-// Since it's not used, let's remove it to avoid confusion.
