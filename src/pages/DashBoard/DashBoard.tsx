@@ -13,6 +13,7 @@ import ProjectStatusFilter from "./ProjectStatusFilter/ProjectStatusFilter";
 import WebsiteCard from "./WebsiteCard/WebsiteCard";
 import WebsiteDetail from "./WebsiteDetail/WebSiteDetail";
 import ImportSettingsPopup from "./ImportSettingsPopup/ImportSettingsPopup";
+import { useToast } from "./ToastNotifcation/ToastNotification";
 
 interface CustomStatusStorage {
   customStatuses: { value: ProjectStatus; label: string; color: string }[];
@@ -46,6 +47,7 @@ function DashBoard() {
   });
   const [customStatuses, setCustomStatuses] = useState<{ value: ProjectStatus; label: string; color: string }[]>([]);
 
+  const { showToast } = useToast();
 
   const navigate = useNavigate();
 
@@ -222,7 +224,7 @@ function DashBoard() {
         )
       );
 
-      addError(`Screenshot taken for ${website.name}`, 'info');
+      showToast('Screenshot captured successfully!', 'success');
     } catch (error) {
       console.error('Screenshot error:', error);
       addError(`Failed to take screenshot: ${website.name}`, 'error');
@@ -238,7 +240,7 @@ function DashBoard() {
     }
   };
 
-  
+
   const handleCloudSync = async () => {
     if (!cloudProvider) return;
 
