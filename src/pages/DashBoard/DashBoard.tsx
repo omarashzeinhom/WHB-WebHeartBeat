@@ -1,3 +1,4 @@
+// src/pages/DashBoard/DashBoard.tsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { listen } from '@tauri-apps/api/event';
@@ -7,6 +8,7 @@ import { AppError } from "../../hooks/useErrorHandler";
 import { ScreenshotProgress } from "../../models/ScreenshotProgress";
 import { ProjectStatus, Website, Industry, PROJECT_STATUSES } from "../../models/website";
 import { TauriService } from "../../services/TauriService";
+import { ExportService } from "../../services/ExportService"; // Add this import
 import ExportStatusPopup from "./ExportStatusPopup/ExportStatusPopup";
 import IndustryFilter from "./IndustryFilter/IndustryFilter";
 import ProjectStatusFilter from "./ProjectStatusFilter/ProjectStatusFilter";
@@ -34,26 +36,15 @@ function DashBoard() {
   const [isExportPopupOpen, setIsExportPopupOpen] = useState(false);
   const [isImportPopupOpen, setIsImportPopupOpen] = useState(false);
   const [importMode, setImportMode] = useState<'websites' | 'full-backup'>('websites');
-  const [exportStatus, setExportStatus] = useState<{
-    exportedWebsites: Website[];
-    exportDestination: string;
-    exportFormat: 'json' | 'csv' | 'pdf';
-    exportTime: Date;
-  }>({
-    exportedWebsites: [],
-    exportDestination: 'Local File',
-    exportFormat: 'json',
-    exportTime: new Date(),
-  });
+  // Remove unused exportStatus state
   const [customStatuses, setCustomStatuses] = useState<{ value: ProjectStatus; label: string; color: string }[]>([]);
 
   const { showToast } = useToast();
-
   const navigate = useNavigate();
 
   useEffect(() => {
     loadWebsites();
-    loadCustomStatuses(); // Load custom statuses on mount
+    loadCustomStatuses();
     setupProgressListener();
   }, []);
 
@@ -146,7 +137,6 @@ function DashBoard() {
       const websitesData = await TauriService.loadWebsites();
       setWebsites(websitesData);
 
-      // If no websites, prompt user to add one
       if (websitesData.length === 0) {
         addError("No websites found. Add your first website to start monitoring!", "info");
       }
@@ -187,8 +177,6 @@ function DashBoard() {
     setLoading(false);
   };
 
-  // Dashboard component - Fixed takeScreenshot function with proper loading state
-
   const takeScreenshot = async (id: number) => {
     console.log('Starting screenshot for ID:', id);
 
@@ -200,7 +188,6 @@ function DashBoard() {
 
     console.log('Taking screenshot for:', website.url);
 
-    // Set loading state
     setWebsites(prevWebsites =>
       prevWebsites.map(w =>
         w.id === id ? { ...w, isProcessing: true } : w
@@ -209,13 +196,10 @@ function DashBoard() {
 
     try {
       console.log('Calling Tauri service...');
-
-      // FIXED: takeScreenshot now returns the updated website directly
       const updatedWebsite = await TauriService.takeScreenshot(website);
 
       console.log('Screenshot completed:', updatedWebsite.screenshot ? 'Success' : 'Failed');
 
-      // Update state with new screenshot - explicitly type as Website
       setWebsites(prevWebsites =>
         prevWebsites.map(w =>
           w.id === id
@@ -229,7 +213,6 @@ function DashBoard() {
       console.error('Screenshot error:', error);
       addError(`Failed to take screenshot: ${website.name}`, 'error');
 
-      // Remove loading state on error
       setWebsites(prevWebsites =>
         prevWebsites.map(w =>
           w.id === id
@@ -239,7 +222,6 @@ function DashBoard() {
       );
     }
   };
-
 
   const handleCloudSync = async () => {
     if (!cloudProvider) return;
@@ -347,42 +329,25 @@ function DashBoard() {
     return filtered;
   };
 
-  // FIXED: Export now includes custom statuses
-  const handleExport = async () => {
+  // FIXED: Export function with proper event handling
+  const handleExport = async (format: 'json' | 'full-backup' = 'full-backup', includeNotes: boolean = true) => {
     try {
-      const exportData = {
-        websites: websites,
-        customStatuses: customStatuses,
-        exportDate: new Date().toISOString(),
-        version: '1.0',
-        type: 'full-backup' // Add type identifier
-      };
+      const customStatuses = JSON.parse(localStorage.getItem('customProjectStatuses') || '{"customStatuses":[]}').customStatuses;
 
-      const data = JSON.stringify(exportData, null, 2);
-      const blob = new Blob([data], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `website_backup_${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await ExportService.downloadExport(websites, {
+        format,
+        includeNotes,
+        includeCustomStatuses: format === 'full-backup'
+      }, customStatuses);
 
-      // Update export status to show it's a full backup
-      setExportStatus({
-        exportedWebsites: websites,
-        exportDestination: 'Local File',
-        exportFormat: 'json',
-        exportTime: new Date(),
-      });
+      // Show success popup with current data
       setIsExportPopupOpen(true);
-
     } catch (error) {
       console.error('Export failed:', error);
-      addError('Export failed');
+      addError('Export failed: ' + error);
     }
   };
+
   const handleWebsiteClick = (website: Website) => {
     setSelectedWebsite(website);
   };
@@ -434,22 +399,18 @@ function DashBoard() {
     alert(`Successfully restored ${restoredWebsites.length} websites!`);
   };
 
-  // FIXED: Import now handles custom statuses
   const handleImportComplete = async (importedData: any) => {
     try {
-      // Check if importedData contains websites and customStatuses
       if (importedData.websites && Array.isArray(importedData.websites)) {
         setWebsites(importedData.websites);
         await TauriService.saveWebsites(importedData.websites);
 
-        // Import custom statuses if they exist
         if (importedData.customStatuses && Array.isArray(importedData.customStatuses)) {
           setCustomStatuses(importedData.customStatuses);
         }
 
         alert(`Successfully imported ${importedData.websites.length} websites!`);
       } else {
-        // Fallback for old format (just array of websites)
         const updatedWebsites = await TauriService.loadWebsites();
         setWebsites(updatedWebsites);
         alert(`Successfully imported ${updatedWebsites.length} websites!`);
@@ -543,7 +504,8 @@ function DashBoard() {
         </div>
 
         <div className="import-export-actions">
-          <button className="scan-btn" onClick={handleExport}>
+          {/* FIXED: Export button with proper onClick */}
+          <button className="scan-btn" onClick={() => handleExport('full-backup', true)}>
             Export Full Backup
           </button>
           <button className="scan-btn" onClick={() => {
@@ -714,13 +676,12 @@ function DashBoard() {
         <ExportStatusPopup
           isOpen={isExportPopupOpen}
           onClose={() => setIsExportPopupOpen(false)}
-          exportedWebsites={exportStatus.exportedWebsites}
-          exportDestination={exportStatus.exportDestination}
-          exportFormat={exportStatus.exportFormat}
-          exportTime={exportStatus.exportTime}
+          exportedWebsites={websites} // Use current websites
+          exportDestination="Local File"
+          exportFormat="json"
+          exportTime={new Date()}
           totalWebsites={websites.length}
         />
-
 
         <ImportSettingsPopup
           isOpen={isImportPopupOpen}

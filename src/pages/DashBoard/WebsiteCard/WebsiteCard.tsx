@@ -61,7 +61,6 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
   onIndustryChange,
   onProjectStatusChange,
   onWebsiteClick,
-  isProcessing,
   loading,
   screenshotLoading,
   projectStatuses = PROJECT_STATUSES,

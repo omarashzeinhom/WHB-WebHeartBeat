@@ -3,8 +3,8 @@ use crate::models::website::{WebVitals, Website};
 use crate::models::wpscan::WpscanResult;
 use crate::services::storage_service::StorageService;
 use crate::services::wpscan_service::WpscanService;
-use tauri::State;
 use serde::{Deserialize, Serialize};
+use tauri::State;
 
 // Define the validation result struct
 #[derive(Serialize, Deserialize)]
@@ -55,8 +55,34 @@ pub async fn save_websites(
     storage.save_websites(&websites).map_err(|e| e.to_string())
 }
 
+
+#[derive(Serialize, Deserialize)]
+pub struct ExportOptions {
+    pub format: String, // "json", "csv", "full-backup"
+    pub include_notes: bool,
+    pub include_custom_statuses: bool,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct FullBackupExport {
+    pub websites: Vec<Website>,
+    pub custom_statuses: Vec<CustomStatus>,
+    pub export_date: String,
+    pub version: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CustomStatus {
+    pub value: String,
+    pub label: String,
+    pub color: String,
+}
+
 #[tauri::command]
-pub async fn export_websites(storage: State<'_, StorageService>) -> Result<String, String> {
+pub async fn export_websites(
+    storage: State<'_, StorageService>,
+    options: ExportOptions,
+) -> Result<String, String> {
     match storage.get_websites() {
         Ok(websites) => {
             // Ensure all websites have proper structure before export
@@ -72,12 +98,24 @@ pub async fn export_websites(storage: State<'_, StorageService>) -> Result<Strin
                     website
                 })
                 .collect();
-                
-            match serde_json::to_string_pretty(&websites) {
-                Ok(json) => Ok(json),
-                Err(e) => Err(format!("Failed to serialize websites: {}", e)),
+
+            match options.format.as_str() {
+                "full-backup" => {
+                    // Create full backup structure
+                    let backup = FullBackupExport {
+                        websites,
+                        custom_statuses: vec![], // You'll need to get these from your storage
+                        export_date: chrono::Utc::now().to_rfc3339(),
+                        version: "1.0".to_string(),
+                    };
+                    serde_json::to_string_pretty(&backup)
+                        .map_err(|e| format!("Failed to serialize backup: {}", e))
+                }
+                "json" => serde_json::to_string_pretty(&websites)
+                    .map_err(|e| format!("Failed to serialize websites: {}", e)),
+                _ => Err("Unsupported export format".to_string()),
             }
-        },
+        }
         Err(e) => Err(format!("Failed to get websites: {}", e)),
     }
 }
@@ -222,21 +260,54 @@ pub async fn update_website_project_status(
         Err(format!("Website with id {} not found", id))
     }
 }
-
 #[tauri::command]
 pub async fn import_websites(
     json_data: String,
     storage: State<'_, StorageService>,
     merge: bool,
-) -> Result<Vec<Website>, String> {
+) -> Result<ImportResult, String> {
     println!("Importing websites, merge mode: {}", merge);
-    
-    // Parse the JSON data
+
+    // Try to parse as full backup first
+    let backup_parsed: Result<FullBackupExport, _> = serde_json::from_str(&json_data);
+
+    if let Ok(backup) = backup_parsed {
+        println!(
+            "Detected full backup file with {} websites",
+            backup.websites.len()
+        );
+        return import_full_backup(backup, storage, merge).await;
+    }
+
+    // Fall back to websites-only import
     let imported_websites: Vec<Website> = match serde_json::from_str(&json_data) {
         Ok(websites) => websites,
         Err(e) => return Err(format!("Failed to parse JSON: {}", e)),
     };
 
+    import_websites_only(imported_websites, storage, merge).await
+}
+
+async fn import_full_backup(
+    backup: FullBackupExport,
+    storage: State<'_, StorageService>,
+    merge: bool,
+) -> Result<ImportResult, String> {
+    let imported_websites = import_websites_only(backup.websites, storage, merge).await?;
+
+    Ok(ImportResult {
+        websites: imported_websites.websites,
+        custom_statuses: backup.custom_statuses,
+        imported_count: imported_websites.imported_count,
+        skipped_count: imported_websites.skipped_count,
+    })
+}
+
+async fn import_websites_only(
+    imported_websites: Vec<Website>,
+    storage: State<'_, StorageService>,
+    merge: bool,
+) -> Result<ImportResult, String> {
     // Validate the imported websites
     if imported_websites.is_empty() {
         return Err("No websites found in import file".to_string());
@@ -246,65 +317,62 @@ pub async fn import_websites(
     let imported_websites: Vec<Website> = imported_websites
         .into_iter()
         .map(|mut website| {
-            // Ensure vitals exists
             if website.vitals.is_none() {
                 website.vitals = Some(WebVitals::default());
             }
-            
-            // Ensure project_status has a default value if None
+
             if website.project_status.is_none() {
                 website.project_status = Some("wip".to_string());
             }
-            
-            // Ensure notes has a default if None
+
             if website.notes.is_none() {
                 website.notes = Some(crate::models::website::WebsiteNotes::default());
             }
-            
-            // Ensure favorite has a default
-            website.favorite = website.favorite;
-            
-            // Ensure industry has a default
+
             if website.industry.is_empty() {
                 website.industry = "general".to_string();
             }
-            
+
             website
         })
         .collect();
 
+    let mut imported_count = 0;
+    let mut skipped_count = 0;
+
     if merge {
         println!("Merging with existing websites...");
-        // Merge with existing websites
         let mut existing_websites = storage.get_websites().map_err(|e| e.to_string())?;
-        let existing_urls: std::collections::HashSet<String> = 
+        let existing_urls: std::collections::HashSet<String> =
             existing_websites.iter().map(|w| w.url.clone()).collect();
 
-        // Find the highest existing ID
         let max_id = existing_websites.iter().map(|w| w.id).max().unwrap_or(0);
         let mut next_id = max_id + 1;
 
-        // Add new websites, skipping duplicates and updating IDs if needed
         for mut website in imported_websites {
             if existing_urls.contains(&website.url) {
                 println!("Skipping duplicate URL: {}", website.url);
+                skipped_count += 1;
                 continue;
             }
-            
-            // Update ID to avoid conflicts
+
             website.id = next_id;
             next_id += 1;
-            
             existing_websites.push(website);
+            imported_count += 1;
         }
 
-        println!("Final website count after merge: {}", existing_websites.len());
-        storage.save_websites(&existing_websites).map_err(|e| e.to_string())?;
-        Ok(existing_websites)
+        storage
+            .save_websites(&existing_websites)
+            .map_err(|e| e.to_string())?;
+        Ok(ImportResult {
+            websites: existing_websites,
+            custom_statuses: vec![],
+            imported_count,
+            skipped_count,
+        })
     } else {
         println!("Replacing all websites with imported data...");
-        // Replace all websites
-        // Ensure IDs are unique and sequential
         let imported_websites: Vec<Website> = imported_websites
             .into_iter()
             .enumerate()
@@ -314,9 +382,25 @@ pub async fn import_websites(
             })
             .collect();
 
-        storage.save_websites(&imported_websites).map_err(|e| e.to_string())?;
-        Ok(imported_websites)
+        imported_count = imported_websites.len();
+        storage
+            .save_websites(&imported_websites)
+            .map_err(|e| e.to_string())?;
+        Ok(ImportResult {
+            websites: imported_websites,
+            custom_statuses: vec![],
+            imported_count,
+            skipped_count,
+        })
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ImportResult {
+    pub websites: Vec<Website>,
+    pub custom_statuses: Vec<CustomStatus>,
+    pub imported_count: usize,
+    pub skipped_count: usize,
 }
 
 #[tauri::command]
@@ -432,4 +516,3 @@ pub async fn validate_import_data(json_data: String) -> Result<ImportValidationR
         }),
     }
 }
-
