@@ -56,10 +56,11 @@ export class TauriService {
 
   static async loadWebsites(): Promise<Website[]> {
     try {
-      return await invoke('get_websites') as Website[];
+      const websites = await invoke('get_websites') as Website[];
+      return websites || [];
     } catch (error) {
       console.error("Failed to load websites:", error);
-      throw error;
+      return [];
     }
   }
 
@@ -90,19 +91,19 @@ export class TauriService {
     }
   }
 
-static async takeScreenshot(website: Website): Promise<Website> {
-  try {
-    const screenshot = await invoke('take_screenshot', { url: website.url }) as string;
-    return {
-      ...website,
-      screenshot: screenshot, // Direct string, not object
-      lastChecked: new Date().toISOString()
-    };
-  } catch (error) {
-    console.error("Error taking screenshot:", error);
-    throw error;
+  static async takeScreenshot(website: Website): Promise<Website> {
+    try {
+      const screenshot = await invoke('take_screenshot', { url: website.url }) as string;
+      return {
+        ...website,
+        screenshot: screenshot, // Direct string, not object
+        lastChecked: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error("Error taking screenshot:", error);
+      throw error;
+    }
   }
-}
   static async takeBulkScreenshots(): Promise<void> {
     try {
       await invoke('take_bulk_screenshots');
