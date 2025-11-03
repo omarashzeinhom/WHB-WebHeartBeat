@@ -54,6 +54,9 @@ fn main() {
             controllers::settings_controller::get_api_key,
             controllers::settings_controller::delete_all_settings,
             controllers::settings_controller::export_settings_unencrypted,
+            // System Controllers
+            controllers::system_controller::open_containing_folder,
+            controllers::system_controller::open_downloads_folder,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -9,9 +9,13 @@ import {
   Globe, 
   Calendar,
   Clock,
-  ExternalLink
+  ExternalLink,
+  Cloud,
+  Code,
+  Table
 } from 'lucide-react';
 import { Website } from '../../../models/website';
+import { invoke } from '@tauri-apps/api/core';
 import './ExportStatusPopup.css';
 
 interface ExportStatusPopupProps {
@@ -22,6 +26,7 @@ interface ExportStatusPopupProps {
   exportFormat: 'json' | 'csv' | 'pdf';
   exportTime: Date;
   totalWebsites: number;
+  exportFilePath?: string;
 }
 
 const ExportStatusPopup: React.FC<ExportStatusPopupProps> = ({
@@ -32,65 +37,45 @@ const ExportStatusPopup: React.FC<ExportStatusPopupProps> = ({
   exportFormat,
   exportTime,
   totalWebsites,
+  exportFilePath,
 }) => {
-  if (!isOpen) return null;
-
   const successfulExports = exportedWebsites.length;
   const failedExports = totalWebsites - successfulExports;
   const exportSize = new Blob([JSON.stringify(exportedWebsites)]).size;
 
   const getDestinationIcon = (destination: string) => {
-    switch (destination.toLowerCase()) {
-      case 'local':
-        return <Folder size={24} />;
-      case 'google drive':
-        return <Cloud size={24} />;
-      case 'dropbox':
-        return <Cloud size={24} />;
-      case 'onedrive':
-        return <Cloud size={24} />;
-      default:
-        return <Folder size={24} />;
-    }
+    const cloudDestinations = ['google drive', 'dropbox', 'onedrive'];
+    return cloudDestinations.includes(destination.toLowerCase()) ? 
+      <Cloud size={24} /> : <Folder size={24} />;
   };
 
   const getFormatIcon = (format: string) => {
-    switch (format) {
-      case 'json':
-        return <Code size={24} />;
-      case 'csv':
-        return <Table size={24} />;
-      case 'pdf':
-        return <FileText size={24} />;
-      default:
-        return <FileText size={24} />;
+    const formatIcons = {
+      json: <Code size={24} />,
+      csv: <Table size={24} />,
+      pdf: <FileText size={24} />
+    };
+    return formatIcons[format as keyof typeof formatIcons] || <FileText size={24} />;
+  };
+
+  const handleOpenExportLocation = async () => {
+    try {
+      if (exportFilePath) {
+        await invoke('open_containing_folder', { path: exportFilePath });
+      } else {
+        await invoke('open_downloads_folder');
+      }
+    } catch (error) {
+      console.error('Failed to open file location:', error);
     }
   };
 
-  // Cloud icon component since it's not imported above
-  const Cloud = ({ size }: { size: number }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
-    </svg>
-  );
-
-  // Code icon component
-  const Code = ({ size }: { size: number }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
-    </svg>
-  );
-
-  // Table icon component
-  const Table = ({ size }: { size: number }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18"/>
-    </svg>
-  );
+  if (!isOpen) return null;
 
   return (
     <div className="export-popup-overlay" onClick={onClose}>
       <div className="export-popup-content" onClick={(e) => e.stopPropagation()}>
+        
         <div className="export-popup-header">
           <h2>Export Completed Successfully! 🎉</h2>
           <button className="close-btn" onClick={onClose} aria-label="Close">
@@ -144,40 +129,30 @@ const ExportStatusPopup: React.FC<ExportStatusPopupProps> = ({
           <h3>Export Details</h3>
           <div className="details-grid">
             <div className="detail-item">
-              <span className="detail-label">
-                <Globe size={16} />
-                Total Websites:
-              </span>
+              <Globe size={16} />
+              <span className="detail-label">Total Websites:</span>
               <span className="detail-value">{totalWebsites}</span>
             </div>
             <div className="detail-item">
-              <span className="detail-label">
-                <CheckCircle size={16} />
-                Successful:
-              </span>
+              <CheckCircle size={16} />
+              <span className="detail-label">Successful:</span>
               <span className="detail-value success-text">{successfulExports}</span>
             </div>
             {failedExports > 0 && (
               <div className="detail-item">
-                <span className="detail-label">
-                  <X size={16} />
-                  Failed:
-                </span>
+                <X size={16} />
+                <span className="detail-label">Failed:</span>
                 <span className="detail-value error-text">{failedExports}</span>
               </div>
             )}
             <div className="detail-item">
-              <span className="detail-label">
-                <Clock size={16} />
-                Export Time:
-              </span>
+              <Clock size={16} />
+              <span className="detail-label">Export Time:</span>
               <span className="detail-value">{exportTime.toLocaleTimeString()}</span>
             </div>
             <div className="detail-item">
-              <span className="detail-label">
-                <Calendar size={16} />
-                Date:
-              </span>
+              <Calendar size={16} />
+              <span className="detail-label">Date:</span>
               <span className="detail-value">{exportTime.toLocaleDateString()}</span>
             </div>
           </div>
@@ -203,17 +178,12 @@ const ExportStatusPopup: React.FC<ExportStatusPopupProps> = ({
           <button className="btn-secondary" onClick={onClose}>
             Close
           </button>
-          <button 
-            className="btn-primary" 
-            onClick={() => {
-              // Add functionality to open the exported file location
-              console.log('Open file location');
-            }}
-          >
+          <button className="btn-primary" onClick={handleOpenExportLocation}>
             <ExternalLink size={16} />
             Open File Location
           </button>
         </div>
+        
       </div>
     </div>
   );

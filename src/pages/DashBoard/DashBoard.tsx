@@ -536,7 +536,7 @@ function DashBoard() {
             onClick={checkAllWebsites}
             disabled={loading || websites.length === 0 || screenshotProgress !== null}
           >
-            {loading ? "Checking..." : "Check All Websites"}
+            {loading ? "Checking..." : "Check All"}
           </button>
           <button
             className="scan-btn screenshot-btn"

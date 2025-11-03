@@ -1,0 +1,46 @@
+[
+  {
+    "id": 1,
+    "url": "https://webheartbeat.com",
+    "name": "webheartbeat.com",
+    "vitals": {
+      "lcp": 0.0,
+      "fid": 0.0,
+      "cls": 0.0,
+      "fcp": 0.0,
+      "ttfb": 0.0
+    },
+    "status": 200,
+    "lastChecked": "2025-11-03T22:37:55.756Z",
+    "industry": "general",
+    "projectStatus": "wip",
+    "favorite": false,
+    "screenshot": null,
+    "isWordPress": true,
+    "description": "",
+    "notes": {
+      "dns_history": [],
+      "project_access": {
+        "credentials": [],
+        "access_notes": "",
+        "warning_acknowledged": false
+      },
+      "general_notes": "",
+      "security": {
+        "vulnerabilities": [],
+        "open_ports": [],
+        "exposed_info": "",
+        "security_scan_results": ""
+      },
+      "report": {
+        "summary": "",
+        "performance": "",
+        "security": "",
+        "recommendations": "",
+        "generated_date": "2025-11-03T22:30:18.652776200+00:00"
+      },
+      "last_updated": "2025-11-03T22:30:18.652808500+00:00"
+    },
+    "tags": []
+  }
+]
