@@ -57,6 +57,7 @@ fn main() {
             // System Controllers
             controllers::system_controller::open_containing_folder,
             controllers::system_controller::open_downloads_folder,
+            controllers::system_controller::get_downloads_path,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

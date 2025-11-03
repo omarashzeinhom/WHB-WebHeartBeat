@@ -61,12 +61,22 @@ const ExportStatusPopup: React.FC<ExportStatusPopupProps> = ({
   const handleOpenExportLocation = async () => {
     try {
       if (exportFilePath) {
+        // If we have a specific file path, open its containing folder
         await invoke('open_containing_folder', { path: exportFilePath });
       } else {
+        // Always open downloads folder for exports
         await invoke('open_downloads_folder');
       }
     } catch (error) {
       console.error('Failed to open file location:', error);
+      
+      // Fallback: try to get the downloads path and show it
+      try {
+        const downloadsPath = await invoke('get_downloads_path') as string;
+        alert(`Could not open file location automatically. Please navigate to: ${downloadsPath}`);
+      } catch (e) {
+        alert('Could not open file location. Please check your Downloads folder.');
+      }
     }
   };
 
@@ -180,7 +190,7 @@ const ExportStatusPopup: React.FC<ExportStatusPopupProps> = ({
           </button>
           <button className="btn-primary" onClick={handleOpenExportLocation}>
             <ExternalLink size={16} />
-            Open File Location
+            Open Downloads Folder
           </button>
         </div>
         
