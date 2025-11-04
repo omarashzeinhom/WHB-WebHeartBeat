@@ -1,0 +1,284 @@
+
+/* Single-Line Search Bar */
+.aws-search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--aws-bg);
+  border: 2px solid var(--aws-border);
+  border-radius: var(--aws-radius);
+  padding: 10px 16px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 10px;
+}
+
+.aws-search-bar:focus-within {
+  border-color: var(--aws-accent-red);
+  box-shadow: 0 4px 12px rgba(231, 56, 39, 0.2);
+}
+
+/* Search Icon */
+.aws-search-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--aws-text-secondary);
+  stroke-width: 2;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.aws-search-bar:focus-within .aws-search-icon {
+  color: var(--aws-accent-red);
+}
+
+/* Input */
+.aws-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  color: var(--aws-text);
+  font-family: "Lato", sans-serif;
+  transition: color 0.2s;
+}
+
+.aws-search-input::placeholder {
+  color: var(--aws-text-secondary);
+  opacity: 0.7;
+}
+
+/* Clear Button */
+.aws-clear-btn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  color: var(--aws-text-secondary);
+  cursor: pointer;
+  font-size: 18px;
+  opacity: 0.6;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+
+.aws-clear-btn:hover {
+  opacity: 1;
+  color: var(--aws-accent-red);
+  background: var(--aws-accent-red-light);
+}
+
+/* Spinner */
+.aws-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--aws-ui-bg);
+  border-top-color: var(--aws-accent-red);
+  border-radius: 50%;
+  animation: aws-spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes aws-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dropdown */
+.aws-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--aws-bg);
+  border: 2px solid var(--aws-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  max-height: 500px;
+  overflow: hidden;
+  animation: aws-slide-down 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] .aws-dropdown {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes aws-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading State */
+.aws-loading,
+.aws-no-results {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--aws-text-secondary);
+}
+
+.aws-loading p,
+.aws-no-results p {
+  margin: 12px 0 0 0;
+  font-size: 14px;
+  font-family: "Lato", sans-serif;
+}
+
+.aws-spinner-lg {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--aws-ui-bg);
+  border-top-color: var(--aws-accent-red);
+  border-radius: 50%;
+  animation: aws-spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+/* Results Container */
+.aws-results {
+  max-height: 450px;
+  overflow-y: auto;
+}
+
+/* Result Item */
+.aws-result-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--aws-border);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.aws-result-item:last-child {
+  border-bottom: none;
+}
+
+.aws-result-item:hover {
+  background: var(--aws-ui-bg);
+}
+
+.aws-result-item.selected {
+  background: var(--aws-accent-red-light);
+  border-left: 3px solid var(--aws-accent-red);
+}
+
+/* Result Header */
+.aws-result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.aws-result-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--aws-text);
+  font-family: "Red Hat Display", sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Status Badge */
+.aws-status-badge {
+  font-size: 12px;
+  color: #4caf50;
+  flex-shrink: 0;
+}
+
+.aws-result-item.selected .aws-status-badge {
+  color: var(--aws-accent-red);
+}
+
+/* Result URL */
+.aws-result-url {
+  margin: 0 0 6px 0;
+  font-size: 12px;
+  color: var(--aws-text-secondary);
+  font-family: "Lato", sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Result Meta */
+.aws-result-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.aws-result-meta span {
+  font-size: 11px;
+  color: var(--aws-text-secondary);
+  font-family: "Lato", sans-serif;
+  padding: 2px 6px;
+  background: var(--aws-ui-bg);
+  border-radius: 4px;
+  border: 1px solid var(--aws-border);
+}
+
+/* Scrollbar */
+.aws-results::-webkit-scrollbar {
+  width: 6px;
+}
+
+.aws-results::-webkit-scrollbar-track {
+  background: var(--aws-ui-bg);
+}
+
+.aws-results::-webkit-scrollbar-thumb {
+  background: var(--aws-border);
+  border-radius: 3px;
+}
+
+.aws-results::-webkit-scrollbar-thumb:hover {
+  background: var(--aws-text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .aws-container {
+    max-width: 100%;
+  }
+
+  .aws-search-input {
+    font-size: 14px;
+  }
+
+  .aws-result-header h4 {
+    font-size: 13px;
+  }
+
+  .aws-dropdown {
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .aws-search-bar {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+
+  .aws-search-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .aws-result-item {
+    padding: 10px 12px;
+  }
+
+  .aws-results {
+    max-height: 300px;
+  }
+}

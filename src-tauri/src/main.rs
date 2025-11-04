@@ -6,6 +6,13 @@ mod controllers;
 mod models;
 mod services;
 
+use controllers::search_controller::{
+    search_websites, 
+    quick_search, 
+    get_search_suggestions, 
+    get_search_stats
+};
+
 use services::storage_service::StorageService;
 use tauri::Manager;
 
@@ -58,6 +65,12 @@ fn main() {
             controllers::system_controller::open_containing_folder,
             controllers::system_controller::open_downloads_folder,
             controllers::system_controller::get_downloads_path,
+            //
+            // Search Controllers
+            search_websites,
+            quick_search,
+            get_search_suggestions,
+            get_search_stats,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

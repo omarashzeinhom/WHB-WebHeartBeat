@@ -1,37 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 import './NavigationBar.css';
-
-import SearchIcon from '../../../assets/icons/search.svg';
 import MenuIcon from '../../../assets/icons/menu.svg';
 import CloseIcon from '../../../assets/icons/close.svg';
 import ThemeToggleIcon from '../../../assets/icons/theme-toggle.svg';
 import Logo from '../../../assets/WHB.svg';
+import { Website } from '../../../models/website';
+import AdvancedWebsiteSearch from '../AdvancedWebsiteSearch/AdvancedWebsiteSearch';
 
 interface NavigationBarProps {
   initialTheme?: 'light' | 'dark';
   onThemeChange?: (theme: 'light' | 'dark') => void;
-  onSearch?: (query: string) => void;
-  searchResults?: any[];
-  onSearchResultClick?: (result: any) => void;
+  websites: Website[]; // Changed from searchResults
 }
 
 const NavigationBar: React.FC<NavigationBarProps> = ({
   initialTheme = 'light',
   onThemeChange,
-  onSearch,
-  searchResults = [],
-  onSearchResultClick
+  websites = []
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [theme, setTheme] = useState<'light' | 'dark'>(initialTheme);
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
+
+  // Global keyboard shortcut for search (Ctrl+K)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.querySelector('.search-input') as HTMLInputElement;
+        searchInput?.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -43,35 +50,6 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearch?.(searchQuery);
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-    onSearch?.(e.target.value);
-    setShowSearchResults(e.target.value.length > 0);
-  };
-
-  const handleSearchResultClick = (result: any) => {
-    onSearchResultClick?.(result);
-    setShowSearchResults(false);
-    setSearchQuery('');
-    // Navigate to website detail
-    navigate({ to: '/websites/$id', params: { id: result.id.toString() } });
-  };
-
-  const handleSearchBlur = () => {
-    setTimeout(() => setShowSearchResults(false), 200);
-  };
-
-  const handleSearchFocus = () => {
-    if (searchQuery.length > 0) {
-      setShowSearchResults(true);
-    }
-  };
-
   return (
     <>
       <nav className="navigation-bar">
@@ -81,45 +59,19 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
               <img src={MenuIcon} alt="Menu" />
             </button>
             <div className="logo">
-              <Link to="/" onClick={toggleMenu}>
-
+              <Link to="/" onClick={() => setIsMenuOpen(false)}>
                 <img src={Logo} alt="WebHeartbeat" />
-
               </Link>
-
             </div>
           </div>
 
-          <div className="nav-center">
-            <form className="search-form" onSubmit={handleSearch}>
-              <div className="search-input-container">
-                <img src={SearchIcon} alt="Search" className="search-icon" />
-                <input
-                  type="text"
-                  placeholder="Search Website"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  onBlur={handleSearchBlur}
-                  onFocus={handleSearchFocus}
-                  className="search-input"
-                />
-                {showSearchResults && searchResults.length > 0 && (
-                  <div className="search-results">
-                    {searchResults.map((result, index) => (
-                      <div
-                        key={index}
-                        className="search-result-item"
-                        onMouseDown={() => handleSearchResultClick(result)}
-                      >
-                        {result.name}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </form>
+           <div className="nav-center">
+            <AdvancedWebsiteSearch
+              onWebsiteSelect={(website) => {
+                // Handle website selection if needed
+              }}
+            />
           </div>
-
           <div className="nav-right">
             <nav className="nav-links">
               <a href="#" className="nav-link">Donate</a>
@@ -146,12 +98,6 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
             <Link to="/add-website" className="side-nav-link" onClick={toggleMenu}>Add New Website</Link>
             <Link to="/wpscan" className="side-nav-link" onClick={toggleMenu}>Security Scan</Link>
             <Link to="/settings" className="side-nav-link" onClick={toggleMenu}>Settings</Link>
-            {/*
-            <a href="#" className="side-nav-link">Analytics</a>
-            <a href="#" className="side-nav-link">Settings</a>
-            <a href="#" className="side-nav-link">Export</a>
-            <a href="#" className="side-nav-link disabled">Import</a>
-            <a href="#" className="side-nav-link">Help</a> */}
           </nav>
         </div>
       </div>
