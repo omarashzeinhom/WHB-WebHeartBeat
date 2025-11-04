@@ -5,19 +5,16 @@ import MenuIcon from '../../../assets/icons/menu.svg';
 import CloseIcon from '../../../assets/icons/close.svg';
 import ThemeToggleIcon from '../../../assets/icons/theme-toggle.svg';
 import Logo from '../../../assets/WHB.svg';
-import { Website } from '../../../models/website';
 import AdvancedWebsiteSearch from '../AdvancedWebsiteSearch/AdvancedWebsiteSearch';
 
 interface NavigationBarProps {
   initialTheme?: 'light' | 'dark';
   onThemeChange?: (theme: 'light' | 'dark') => void;
-  websites: Website[]; // Changed from searchResults
 }
 
 const NavigationBar: React.FC<NavigationBarProps> = ({
   initialTheme = 'light',
   onThemeChange,
-  websites = []
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>(initialTheme);
@@ -67,7 +64,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
 
            <div className="nav-center">
             <AdvancedWebsiteSearch
-              onWebsiteSelect={(website) => {
+              onWebsiteSelect={() => {
                 // Handle website selection if needed
               }}
             />
