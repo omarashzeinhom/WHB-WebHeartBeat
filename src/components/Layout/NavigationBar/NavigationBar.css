@@ -5,17 +5,17 @@
   --text-color-light: #232323;
   --border-color-light: #e0e0e0;
   --search-bg-light: #f5f5f5;
-  
+
   /* Dark theme variables */
   --bg-color-dark: #1a1a1a;
   --text-color-dark: #ffffff;
   --border-color-dark: #333333;
   --search-bg-dark: #2a2a2a;
-  
+
   /* Accent colors (same for both themes) */
   --accent-color: #232323;
-  --accent-red: #E73827;
-  
+  --accent-red: #e73827;
+
   /* Default to light theme */
   --bg-color: var(--bg-color-light);
   --text-color: var(--text-color-light);
@@ -47,7 +47,7 @@
   top: 0;
   width: 100%;
   background-color: var(--bg-color);
-  background: #13131775 ;
+  background: #13131775;
   border-bottom: 2px solid var(--accent-red);
   z-index: 1000;
   transition: background-color 0.3s ease;
@@ -140,8 +140,6 @@
   box-shadow: 0 0 0 2px rgba(231, 56, 39, 0.2);
 }
 
-
-
 .nav-right {
   display: flex;
   align-items: center;
@@ -167,7 +165,7 @@
 }
 
 .nav-link::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -2px;
   left: 0;
@@ -219,7 +217,9 @@
   z-index: 2000;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
 }
 
 [data-theme="dark"] .side-menu-overlay {
@@ -297,7 +297,9 @@
   font-weight: 500;
   padding: 0.75rem 1rem;
   border-radius: 6px;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 .side-nav-link:hover {
@@ -320,11 +322,11 @@
   .nav-container {
     padding: 1rem;
   }
-  
+
   .nav-links {
     display: none;
   }
-  
+
   .nav-center {
     margin: 0 1rem;
   }
