@@ -25,9 +25,11 @@ impl Default for WebVitals {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DNSRecord {
-    pub record_type: String, // 'A', 'MX', 'TXT', 'CNAME', 'NS'
+    #[serde(rename = "type")]
+    pub record_type: String,
     pub value: String,
     pub ttl: Option<u32>,
+    #[serde(rename = "lastChecked")]
     pub last_checked: String,
 }
 
@@ -83,12 +85,16 @@ pub struct WebsiteReport {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct WebsiteNotes {
+  #[serde(rename = "dnsHistory")]
     pub dns_history: Vec<DNSRecord>,
+    #[serde(rename = "projectAccess")] 
     pub project_access: ProjectAccess,
+    #[serde(rename = "generalNotes")]
     pub general_notes: String,
+    #[serde(rename = "lastUpdated")]
+    pub last_updated: String,
     pub security: SecurityNotes,
     pub report: WebsiteReport,
-    pub last_updated: String,
 }
 
 // Now define the Website struct, which uses WebVitals and WebsiteNotes
